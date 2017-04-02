@@ -1,14 +1,14 @@
 package exception;
 
-public class NoDataException extends Exception{
+public class NoDataException extends Exception {
 
-	/**
+    /**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
-	
-	public NoDataException() {
-		super("Error! No data has been loaded!");
-	}
+    private static final long serialVersionUID = 1L;
+
+    public NoDataException() {
+        super("Error! No data has been loaded!");
+    }
 
 }
