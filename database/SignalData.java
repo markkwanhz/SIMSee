@@ -2,6 +2,7 @@ package database;
 
 import java.util.ArrayList;
 
+import exception.ArrayOverflowException;
 import exception.NoDataException;
 
 public class SignalData {
@@ -13,8 +14,12 @@ public class SignalData {
     private String units;
     private ArrayList<Double> doubleBuff;
     private double[] data;
-
+    
     public SignalData(String[] s) {
+        if(s==null){
+            String[] t = {"","","","0","0",""};
+            s = t;
+        }
         this.signalType = s[0];
         this.signalName = s[1];
         this.signalGroup = s[2];
@@ -24,13 +29,20 @@ public class SignalData {
         doubleBuff = new ArrayList<Double>();
     }
 
-    public double[] queryArray(int index, int num) throws NoDataException {
-        if (this.data.length == 0) {
+    public double[] queryArray(int index, int num) throws NoDataException,
+            ArrayOverflowException {
+        if (this.size() == 0) {
             throw new NoDataException();
+        } else if (index < 0 || index + num > this.size()) {
+            throw new ArrayOverflowException();
         }
         double[] queryAns = new double[num];
         System.arraycopy(this.data, index, queryAns, 0, num);
         return queryAns;
+    }
+    
+    public double queryRecord(int index){
+        return index>this.data.length?this.data[data.length-1]:this.data[index];
     }
 
     public void postProgress() {

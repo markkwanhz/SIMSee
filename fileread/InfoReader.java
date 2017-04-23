@@ -25,6 +25,7 @@ public class InfoReader extends FileReader {
         des[3] = inString.next().substring(4);
         des[4] = inString.next().substring(4);
         des[5] = extractQuo(inString.next());
+        inString.close();
         return des;
     }
 

@@ -32,6 +32,7 @@ public abstract class FileReader {
             }
         }
         this.postProgress();
+        infoScan.close();
         fis.close();
     }
 
