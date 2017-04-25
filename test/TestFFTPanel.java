@@ -8,12 +8,13 @@ import java.util.Scanner;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 
-import chart.FFTResultsPanel;
-import data.FFTData;
-import data.TimeSeriesData;
-import exception.XYLengthException;
-import fft.FFTAnalysis;
-import fft.FFTProperties;
+import ui.chart.FFTResultsPanel;
+import ui.util.DpiSetting;
+import util.data.FFTData;
+import util.data.TimeSeriesData;
+import util.exception.XYLengthException;
+import util.fft.FFTAnalysis;
+import util.fft.FFTProperties;
 
 public class TestFFTPanel {
 
@@ -54,7 +55,11 @@ public class TestFFTPanel {
         FFTAnalysis fft = new FFTAnalysis(dd, fftP);
         FFTData ans = fft.fftAnalyse();
         
+        //for screen dpi setting
+        //int dpi = Toolkit.getDefaultToolkit().getScreenResolution();
+        
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        DpiSetting.updateDPI();
         FFTResultsPanel fftp = new FFTResultsPanel(ans);
         JFrame haha = new JFrame();
         haha.add(fftp);
