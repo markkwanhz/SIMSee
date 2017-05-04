@@ -1,10 +1,12 @@
 package test;
 
+import java.awt.BorderLayout;
 import java.io.IOException;
 
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 
+import ui.TimeSeriesControlPanel;
 import ui.chart.TimeSeriesPanel;
 import ui.util.DpiSetting;
 import util.data.TimeSeriesData;
@@ -15,7 +17,7 @@ import util.exception.NoDataException;
 import util.exception.XYLengthException;
 import util.fileread.*;
 
-public class TestSeriesPanel {
+public class TestTSControlPanel {
     public static void main(String[] args) throws IOException,
             FileFormatException, NoDataException, ArrayOverflowException, XYLengthException {
         String s1 = "C:/Users/M/Documents/PSCAD/test.gf42/test.inf";
@@ -38,14 +40,18 @@ public class TestSeriesPanel {
             System.out.println(e);
         }
         
-        TimeSeriesPanel fp = new TimeSeriesPanel();
+        TimeSeriesPanel tsp = new TimeSeriesPanel();
+        tsp.setCrosshairVisible(false);
+        TimeSeriesData[] xy = data.getAllData();
+        tsp.addData(xy);
+        TimeSeriesControlPanel tscp = new TimeSeriesControlPanel(data, tsp);
         JFrame frame = new JFrame("a plot panel");
-        frame.setContentPane(fp);
+        frame.setLayout(new BorderLayout());
+        frame.add(tsp,"Center");
+        frame.add(tscp, "East");
         frame.pack();
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        TimeSeriesData xy = data.querySignal("U:1");
-        fp.addData(xy);
         
         return;
     }

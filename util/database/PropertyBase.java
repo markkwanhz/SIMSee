@@ -10,8 +10,8 @@ public class PropertyBase extends ArrayList<SortedList> {
      * name using type & group
      */
     private static final long serialVersionUID = 1L;
-    public static final int TYPE = 0;
-    public static final int GROUP = 1;
+    public static final String TYPE = "type";
+    public static final String GROUP = "group";
 
     public PropertyBase() {
         SortedList sl = new SortedList();
@@ -25,7 +25,8 @@ public class PropertyBase extends ArrayList<SortedList> {
         registerSignal(s[2], s[1], PropertyBase.GROUP); // "Group"
     }
 
-    public void registerSignal(String s1, String name, int index) {
+    public void registerSignal(String s1, String name, String key) {
+        int index = key.equals(TYPE)? 0:1;
         SortedList temp = this.get(index);
         temp.registerSignal(s1, name);
     }

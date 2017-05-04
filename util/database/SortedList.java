@@ -27,7 +27,7 @@ public class SortedList extends HashMap<String, ArrayList<String>> {
         Iterator<java.util.Map.Entry<String, ArrayList<String>>> it = this
                 .entrySet().iterator();
         while (it.hasNext()) {
-            typeList = typeList + it.next().getKey() + "\n";
+            typeList = typeList + " " + it.next().getKey() ;
         }
         return typeList;
     }
@@ -36,8 +36,9 @@ public class SortedList extends HashMap<String, ArrayList<String>> {
         String nameList = "";
         ArrayList<String> signal = this.get(type);
         if (signal != null) {
-            for (int k = 0; k < signal.size(); k++) {
-                nameList = nameList + signal.get(k) + "\n";
+            nameList = signal.get(0);
+            for (int k = 1; k < signal.size(); k++) {
+                nameList = nameList + " " + signal.get(k);
             }
         }
         return nameList;

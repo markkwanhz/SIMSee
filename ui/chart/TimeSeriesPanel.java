@@ -210,6 +210,7 @@ public class TimeSeriesPanel extends JPanel {
         this.add(ySlider, "West");
         this.add(xSlider, "South");
         this.add(cp, "Center");
+        
     }
 
     /**
@@ -240,6 +241,7 @@ public class TimeSeriesPanel extends JPanel {
         for(int k = 0; k<data.length; k++){
             this.addData(data[k]);
         }
+        this.hideAllSignal();
     }
 
     /**
@@ -267,5 +269,31 @@ public class TimeSeriesPanel extends JPanel {
             throw new Exception("Illegal signal name for crosshair.");
         }
         this.crosshairIndex = index;
+    }
+    
+    /**
+     * Set the given signal's visibility
+     * @param signalName
+     * @param visible true(visible) or false(invisible)
+     */
+    public void setSignalVisible(String signalName, boolean visible){
+        int index = xyData.indexOf(signalName);
+        XYLineAndShapeRenderer r = (XYLineAndShapeRenderer)xyPlot.getRenderer();
+        r.setSeriesVisible(index, visible);
+    }
+    
+    
+    public void hideAllSignal(){
+        XYLineAndShapeRenderer r = (XYLineAndShapeRenderer)xyPlot.getRenderer();
+        for(int index = 0; index<xyData.getSeriesCount(); index++){
+            r.setSeriesVisible(index, false);
+        }
+    }
+    
+    public void showAllSignal(){
+        XYLineAndShapeRenderer r = (XYLineAndShapeRenderer)xyPlot.getRenderer();
+        for(int index = 0; index<xyData.getSeriesCount(); index++){
+            r.setSeriesVisible(index, true);
+        }
     }
 }
