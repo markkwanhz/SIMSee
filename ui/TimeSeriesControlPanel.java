@@ -3,7 +3,10 @@ package ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
@@ -11,9 +14,11 @@ import java.awt.event.MouseListener;
 import java.util.HashMap;
 import java.util.Vector;
 
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -36,6 +41,8 @@ public class TimeSeriesControlPanel extends JPanel implements ItemListener,
         ListSelectionListener, MouseListener {
     private static final long serialVersionUID = 1L;
 
+    //Signal chooser
+    private JPanel signalPane;
     private JComboBox<String> filter;
 
     private JScrollPane signalChooser;
@@ -43,6 +50,8 @@ public class TimeSeriesControlPanel extends JPanel implements ItemListener,
     private HashMap<String, JCheckBox> allList;
     private HashMap<String, Vector<JCheckBox>> listContent;
 
+    //Crosshair chooser
+    private JPanel crosshairPane;
     private JScrollPane crosshairChooser;
     private JList<String> crosshairList;
     private DefaultListModel<String> crosshairListContent;
@@ -88,6 +97,7 @@ public class TimeSeriesControlPanel extends JPanel implements ItemListener,
         Font font = new Font("Consolas", Font.PLAIN,
                 DpiSetting.getNormalFontSize());
         filter = new JComboBox<String>();
+        filter.setPreferredSize(DpiSetting.getFittedDimension(new Dimension(130, 20)));
         filter.setFont(font);
 
         signalList = new JList<JCheckBox>();
@@ -99,10 +109,29 @@ public class TimeSeriesControlPanel extends JPanel implements ItemListener,
         crosshairList.setFont(font);
         crosshairChooser = new JScrollPane(crosshairList);
 
-        setLayout(new BorderLayout());
-        add(filter, "North");
-        add(signalChooser, "Center");
-        add(crosshairChooser, "South");
+        signalPane = new JPanel();
+        JPanel temp = new JPanel();
+        temp.setBackground(Color.WHITE);
+        temp.setLayout(new FlowLayout(0));
+        temp.add(new JLabel("Filter:"));
+        temp.add(filter);
+        signalPane.setBackground(Color.WHITE);
+        signalPane.setLayout(new BorderLayout());
+        signalPane.setBorder(BorderFactory.createTitledBorder("Signal Chooser"));
+        signalPane.add(temp, "North");
+        signalPane.add(signalChooser, "Center");
+        
+        crosshairPane = new JPanel();
+        crosshairPane.setBackground(Color.WHITE);
+        crosshairPane.setLayout(new BorderLayout());
+        crosshairPane.add(crosshairChooser,"Center");
+        crosshairPane.setBorder(BorderFactory.createTitledBorder("Crosshair Focus"));
+        
+        setLayout(new GridLayout(2, 1));
+        setBackground(Color.WHITE);
+        add(signalPane);
+        add(crosshairPane);
+        setPreferredSize(new Dimension(220, 600));
 
         allList = new HashMap<String,JCheckBox>();
         listContent = new HashMap<String, Vector<JCheckBox>>();
@@ -121,9 +150,10 @@ public class TimeSeriesControlPanel extends JPanel implements ItemListener,
      * @param d
      */
     public void setDataSection(DataSection d) {
+        
         data = d;
 
-        filter.removeAll();
+        filter.removeAllItems();
         filter.addItem("");
         String[][] listTmp = data.listTypes();
         for (int k = 0; k < listTmp[0].length; k++) {
@@ -183,7 +213,9 @@ public class TimeSeriesControlPanel extends JPanel implements ItemListener,
         else if (e.getSource() instanceof JCheckBox){
             JCheckBox boxChange = (JCheckBox)e.getSource();
             if(boxChange.isSelected()){
+                String selected = crosshairList.getSelectedValue();
                 sortedInsert(boxChange.getText());
+                crosshairList.setSelectedIndex(crosshairListContent.indexOf(selected));
                 tsPanel.setSignalVisible(boxChange.getText(), true);
             } else {
                 if(crosshairList.getSelectedIndex() == crosshairListContent.indexOf(boxChange.getText())){
@@ -210,6 +242,9 @@ public class TimeSeriesControlPanel extends JPanel implements ItemListener,
         if(e.getValueIsAdjusting()) return;
         if(e.getSource() == crosshairList){
             String focus = crosshairList.getSelectedValue();
+            if(focus == null){
+                return;
+            }
             if(focus.equals("(None)")){
                 tsPanel.setCrosshairVisible(false);
             } else {
@@ -226,10 +261,9 @@ public class TimeSeriesControlPanel extends JPanel implements ItemListener,
     @Override
     public void mouseClicked(MouseEvent e) {
         if(signalList.getSelectedIndex()!=-1){
-            if(e.getClickCount() == 2){
+            if(e.getClickCount() == 1){
                 signalList.getSelectedValue().setSelected(!signalList.getSelectedValue().isSelected());
                 signalList.repaint();
-                
             }
         }
     }

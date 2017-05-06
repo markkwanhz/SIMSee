@@ -1,9 +1,11 @@
 package util.data;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import org.apache.commons.math3.analysis.function.Abs;
 
+import ui.chart.MyRange;
 import util.exception.ArrayOverflowException;
 import util.exception.XYLengthException;
 import util.fft.FFTProperties;
@@ -21,6 +23,8 @@ public class TimeSeriesData {
     private double[][] xySeries;
     private double resolution;
     private String signalName;
+    private MyRange xRange;
+    private MyRange yRange;
 
     public TimeSeriesData(String signalName, double resolution) {
         this.signalName = signalName;
@@ -37,6 +41,21 @@ public class TimeSeriesData {
         this.xySeries = xy;
         this.signalName = signalName;
         this.resolution = resolution;
+        
+        double lower, upper;
+        lower = xySeries[0][0]; 
+        upper = xySeries[0][xySeries[0].length-1];
+        this.xRange = new MyRange(lower, upper);
+        
+        lower = upper = xySeries[1][0];
+        for(int k = 0; k<xySeries[1].length; k++){
+            if(xySeries[1][k]>upper){
+                upper = xySeries[1][k];
+            } else if(xySeries[1][k]<lower){
+                lower = xySeries[1][k];
+            }
+        }
+        this.yRange = new MyRange(lower, upper);
     }
 
     public double[][] getData() {
@@ -50,6 +69,14 @@ public class TimeSeriesData {
     public double getRes() {
         return this.resolution;
     }
+    
+    public MyRange getDomainRange(){
+        return xRange;
+    }
+    
+    public MyRange getRangeRange(){
+        return yRange;
+    }
 
     public void add(double time, double signal) {
         this.time.add(time);
@@ -57,6 +84,9 @@ public class TimeSeriesData {
     }
 
     public void arrange() {
+        this.xRange = new MyRange(Collections.min(time), Collections.max(time));
+        this.yRange = new MyRange(Collections.min(signal), Collections.max(signal));
+        
         int len = time.size();
         xySeries = new double[2][len];
         for (int k = 0; k < len; k++) {

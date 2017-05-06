@@ -53,6 +53,9 @@ public class TestTSControlPanel {
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
+        tsp.resetPanel();
+        tsp.addData(xy);
+        
         return;
     }
 }

@@ -22,7 +22,7 @@ public class SliderPanel extends JPanel{
     
     public SliderPanel(int orientation){
         super();
-        this.slider = new TransparentSlider(orientation,0,200,0);
+        this.slider = new TransparentSlider(orientation,0,10000,0);
         this.slider.setPaintLabels(false);
         this.slider.setPaintTicks(false);
         this.slider.setPaintTrack(true);
@@ -64,6 +64,6 @@ public class SliderPanel extends JPanel{
     }
     
     public double getValue(){
-        return ((double)this.slider.getValue())/200;
+        return ((double)this.slider.getValue())/10000;
     }
 }

@@ -131,5 +131,15 @@ public class DataSection {
         }
         return data;
     }
+    
+    /**
+     * Reset the data section to initial condition
+     */
+    public void resetDataSection(){
+        data.clear();
+        property.clear();
+        signalName.clear();
+        time = new SignalData(null);
+    }
 
 }

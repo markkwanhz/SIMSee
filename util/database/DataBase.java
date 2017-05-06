@@ -54,4 +54,10 @@ public class DataBase extends HashMap<String, SignalData> {
     public void setRes(double res){
         this.resolution = res;
     }
+    
+    @Override
+    public void clear(){
+        super.clear();
+        resolution = 0;
+    }
 }

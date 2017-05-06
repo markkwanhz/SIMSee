@@ -3,9 +3,19 @@ package ui.chart;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Font;
+import java.awt.Point;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.Rectangle2D;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.swing.JPanel;
 import javax.swing.JSlider;
@@ -19,6 +29,8 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.annotations.XYTitleAnnotation;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.labels.CrosshairLabelGenerator;
+import org.jfree.chart.labels.StandardCrosshairLabelGenerator;
 import org.jfree.chart.panel.CrosshairOverlay;
 import org.jfree.chart.plot.Crosshair;
 import org.jfree.chart.plot.XYPlot;
@@ -29,12 +41,13 @@ import org.jfree.data.xy.DefaultXYDataset;
 import org.jfree.ui.RectangleAnchor;
 import org.jfree.ui.RectangleEdge;
 
+import ui.util.DpiSetting;
 import util.data.TimeSeriesData;
 
 /**
  * 
  */
-public class TimeSeriesPanel extends JPanel {
+public class TimeSeriesPanel extends JPanel implements MouseListener, MouseMotionListener {
     private static final long serialVersionUID = -3682074995996044430L;
 
     // Chart Components
@@ -83,7 +96,7 @@ public class TimeSeriesPanel extends JPanel {
             range = this.axis.getRange();
             double gap = this.limit.getLength() - range.getLength();
             int loc = (int) ((range.getLowerBound() - this.limit
-                    .getLowerBound()) * 200 / gap);
+                    .getLowerBound()) * 10000 / gap);
             this.sd.setSlider(loc);
         }
     }
@@ -128,17 +141,25 @@ public class TimeSeriesPanel extends JPanel {
 
     private void addCrosshair() {
         CrosshairOverlay crosshairOverlay = new CrosshairOverlay();
+        Font font = new Font("Consolos", Font.PLAIN,
+                DpiSetting.getNormalFontSize());
         this.xCrosshair = new Crosshair(Double.NaN, Color.GRAY,
                 new BasicStroke(0f));
-        this.xCrosshair.setLabelVisible(true);
+        this.xCrosshair.setLabelFont(font);
+        DecimalFormat decimalFormat = new DecimalFormat("0.000E0");
+        this.xCrosshair.setLabelGenerator(new StandardCrosshairLabelGenerator("{0}", decimalFormat));
         this.xCrosshair.setLabelBackgroundPaint(new Color(255, 255, 240));
+        this.xCrosshair.setLabelVisible(true);
         this.yCrosshair = new Crosshair(Double.NaN, Color.GRAY,
                 new BasicStroke(0f));
-        this.yCrosshair.setLabelVisible(true);
+        this.yCrosshair.setLabelFont(font);
+        this.yCrosshair.setLabelGenerator(new StandardCrosshairLabelGenerator("{0}", decimalFormat));
         this.yCrosshair.setLabelBackgroundPaint(new Color(255, 255, 240));
+        this.yCrosshair.setLabelVisible(true);
         crosshairOverlay.addDomainCrosshair(xCrosshair);
         crosshairOverlay.addRangeCrosshair(yCrosshair);
         cp.addOverlay(crosshairOverlay);
+        setCrosshairVisible(false);
     }
 
     class crosshairListener implements ChartMouseListener {
@@ -179,6 +200,7 @@ public class TimeSeriesPanel extends JPanel {
         XYLineAndShapeRenderer r = (XYLineAndShapeRenderer) this.xyPlot.getRenderer();
         BasicStroke stroke = new BasicStroke(1.5f);
         r.setStroke(stroke);
+        r.setBaseSeriesVisible(false);
         
         XYTitleAnnotation xyta = new XYTitleAnnotation(0.001, 0.999,
                 chart.getLegend(), RectangleAnchor.TOP_LEFT);
@@ -211,7 +233,15 @@ public class TimeSeriesPanel extends JPanel {
         this.add(xSlider, "South");
         this.add(cp, "Center");
         
+        domainRange = new HashMap<String,MyRange>();
+        rangeRange = new HashMap<String,MyRange>();
+        
+        this.cp.addMouseListener(this);
+        this.cp.addMouseMotionListener(this);
     }
+    
+    private HashMap<String, MyRange> domainRange;
+    private HashMap<String, MyRange> rangeRange;
 
     /**
      * 往TimeSeriesPanel中增加信号
@@ -221,11 +251,13 @@ public class TimeSeriesPanel extends JPanel {
      */
     public void addData(TimeSeriesData data) {
         int cnt = this.xyData.getSeriesCount();
-        this.xyData.addSeries(data.getName(), data.getData());
-        this.xLimit.setRange(Range.expand(
-                DatasetUtilities.findDomainBounds(this.xyData), 0, 0.05));
-        this.yLimit.setRange(Range.expand(
-                DatasetUtilities.findRangeBounds(this.xyData), 0.05, 0.05));
+        xyData.addSeries(data.getName(), data.getData());
+        domainRange.put(data.getName(), data.getDomainRange());
+        rangeRange.put(data.getName(), data.getRangeRange());
+//        this.xLimit.setRange(Range.expand(
+//                DatasetUtilities.findDomainBounds(this.xyData), 0, 0.05));
+//        this.yLimit.setRange(Range.expand(
+//                DatasetUtilities.findRangeBounds(this.xyData), 0.05, 0.05));
         if(cnt == 0){
             this.cp.restoreAutoBounds();
         }
@@ -280,6 +312,33 @@ public class TimeSeriesPanel extends JPanel {
         int index = xyData.indexOf(signalName);
         XYLineAndShapeRenderer r = (XYLineAndShapeRenderer)xyPlot.getRenderer();
         r.setSeriesVisible(index, visible);
+        ArrayList<Integer> visibleIndex = new ArrayList<>(xyData.getSeriesCount());
+        for(index = 0; index<xyData.getSeriesCount(); index++){
+            if(r.getSeriesVisible(index))
+                visibleIndex.add(index);
+        }
+        if(visibleIndex.size()==0){
+            xLimit.setRange(new Range(0, 10));
+            yLimit.setRange(new Range(0, 10));
+        } else {
+            double xlower = domainRange.get(xyData.getSeriesKey(visibleIndex.get(0))).getLowerBound();
+            double xupper = domainRange.get(xyData.getSeriesKey(visibleIndex.get(0))).getUpperBound();
+            double ylower = rangeRange.get(xyData.getSeriesKey(visibleIndex.get(0))).getLowerBound();
+            double yupper = rangeRange.get(xyData.getSeriesKey(visibleIndex.get(0))).getUpperBound();
+            double temp;
+            for(int k = 1; k<visibleIndex.size(); k++){
+                temp =  domainRange.get(xyData.getSeriesKey(visibleIndex.get(k))).getLowerBound();
+                xlower = temp<xlower?temp:xlower; 
+                temp =  domainRange.get(xyData.getSeriesKey(visibleIndex.get(k))).getUpperBound();
+                xupper = temp>xupper?temp:xupper; 
+                temp =  rangeRange.get(xyData.getSeriesKey(visibleIndex.get(k))).getLowerBound();
+                ylower = temp<ylower?temp:ylower; 
+                temp =  rangeRange.get(xyData.getSeriesKey(visibleIndex.get(k))).getUpperBound();
+                yupper = temp>yupper?temp:yupper; 
+            }
+            xLimit.setRange(Range.expand(new Range(xlower, xupper), 0, 0.05));
+            yLimit.setRange(Range.expand(new Range(ylower, yupper), 0.05, 0.05));
+        }
     }
     
     
@@ -296,4 +355,100 @@ public class TimeSeriesPanel extends JPanel {
             r.setSeriesVisible(index, true);
         }
     }
+    
+    public void resetPanel(){
+        xyData = new DefaultXYDataset();
+        xyPlot.setDataset(xyData);
+        xLimit.setRange(new Range(0, 10));
+        yLimit.setRange(new Range(0, 10));
+        xAxis.setRange(xLimit.getRange());
+        yAxis.setRange(yLimit.getRange());
+        domainRange.clear();
+        rangeRange.clear();
+        setCrosshairVisible(false);
+    }
+    
+    //The following methods are for dragging the chart using mouse
+
+    Point startPoint;
+    Range recordXRange;
+    Range recordYRange;
+    
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        if(e.getClickCount() == 2){
+            xAxis.setRange(xLimit.getRange());
+            yAxis.setRange(yLimit.getRange());
+        }
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        //Set the start point
+        int mods = e.getModifiers();
+        //left button has been pressed
+        if (mods == InputEvent.BUTTON1_MASK) {
+            if (startPoint == null) {
+                Rectangle2D dataArea = cp.getScreenDataArea();
+                Point p = e.getPoint();
+                if (dataArea.contains(p)) {
+                    startPoint = p;
+                    setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+                }
+            }
+        }
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        //Release startPoint
+        int mods = e.getModifiers();
+        if (mods == InputEvent.BUTTON1_MASK && startPoint!=null){
+            startPoint = null;
+            recordXRange = null;
+            recordYRange = null;
+            setCursor((Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR)));
+            Range xtemp = xAxis.getRange();
+            Range ytemp = yAxis.getRange();
+            double gap = xLimit.getLength() - xtemp.getLength();
+            int loc = (int) ((xtemp.getLowerBound() - xLimit
+                    .getLowerBound()) * 10000 / gap);
+            xSlider.setSlider(loc);
+            gap = yLimit.getLength() - ytemp.getLength();
+            loc = (int) ((ytemp.getLowerBound() - yLimit
+                    .getLowerBound()) * 10000 / gap);
+            ySlider.setSlider(loc);
+        }
+    }
+    
+    @Override
+    public void mouseDragged(MouseEvent e) {
+        if (startPoint!=null){
+            double dx = e.getX() - startPoint.getX();
+            double dy = e.getY() - startPoint.getY();
+            if (dx == 0.0 && dy == 0.0){
+                return;
+            }
+            if(recordXRange == null){
+                recordXRange = xAxis.getRange();
+                recordYRange = yAxis.getRange();
+            }
+            Rectangle2D dataArea = cp.getScreenDataArea();
+            double xMove = -dx / dataArea.getWidth() * recordXRange.getLength();
+            double yMove = dy / dataArea.getHeight() * recordYRange.getLength();
+            Range xtemp = xLimit.adjustRange(Range.shift(recordXRange, xMove, true));
+            Range ytemp = yLimit.adjustRange(Range.shift(recordYRange, yMove, true));
+            xAxis.setRange(xtemp);
+            yAxis.setRange(ytemp);
+        }
+    }
+    
+    @Override
+    public void mouseMoved(MouseEvent e) {}
+
+    @Override
+    public void mouseEntered(MouseEvent e) {}
+
+    @Override
+    public void mouseExited(MouseEvent e) {}
 }
