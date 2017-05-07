@@ -2,6 +2,7 @@ package ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -79,7 +80,7 @@ public class MainWindow implements ActionListener {
         
         mainFrame.setJMenuBar(menuBar);
         
-        mainFrame.setSize(1000, 800);;
+        mainFrame.setSize(DpiSetting.getFittedDimension(new Dimension(1000, 650)));
         mainFrame.setVisible(true);
     }
     
@@ -129,6 +130,73 @@ public class MainWindow implements ActionListener {
         tab1.add(tscp,"East");
         topTab.add(" Signal Inspector ", tab1);
     }
+    
+    /**
+     * Import inf file, used in menu1 item1 action listener. 
+     */
+    private void importINF(){
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("PSCAD project info file(*.inf)","inf");
+        JFileChooser jChooser = new JFileChooser();
+        jChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        jChooser.setFileFilter(filter);
+        int returnval = jChooser.showOpenDialog(null);
+        if (returnval == JFileChooser.APPROVE_OPTION) {
+            dataNew = new DataSection();
+            String path = jChooser.getSelectedFile().getPath();
+            input = new InfoReader(path, dataNew);
+            try {
+                input.readFile();
+            } catch (IOException | FileFormatException err) {
+                JOptionPane.showMessageDialog(null, err, "Error", JOptionPane.ERROR_MESSAGE);
+            }
+            input = null;
+        }
+    }
+    
+    private void importData(){
+        if(dataNew == null){
+            JOptionPane.showMessageDialog(null, "An inf file should be loaded first.", 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("PSCAD output file(*.out)","out");
+        JFileChooser jChooser = new JFileChooser();
+        jChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        jChooser.setFileFilter(filter);
+        int returnval = jChooser.showOpenDialog(null);
+        if (returnval == JFileChooser.APPROVE_OPTION) {
+            Progress p = new Progress(mainFrame, Progress.IMPORT);
+            new Thread() {
+                public void run() {
+                    String path = jChooser.getSelectedFile().getPath();
+                    input = new DataReader(path, dataNew);
+                    try {
+                        input.readFile();
+                        p.setValue(50);
+                    } catch (IOException | FileFormatException err) {
+                        JOptionPane.showMessageDialog(null, err, "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
+                    data = dataNew;
+                    dataNew = null;
+                    input = null;
+                    TimeSeriesData[] xy;
+                    try {
+                        xy = data.getAllData();
+                        tsp1.resetPanel();
+                        tsp1.addData(xy);
+                        p.setValue(80);
+                    } catch (NoDataException | ArrayOverflowException e1) {
+                        e1.printStackTrace();
+                    }
+                    tscp.refresh();
+                    tscp.setDataSection(data);
+                    p.setValue(100);
+                }
+            }.start();
+            p.setVisible(true);
+        }
+    }
 
     public static void main(String[] args) {
         try
@@ -159,67 +227,11 @@ public class MainWindow implements ActionListener {
         if(s == item11){
             new Thread(){
                 public void run(){
-                    FileNameExtensionFilter filter = new FileNameExtensionFilter("PSCAD project info file(*.inf)","inf");
-                    JFileChooser jChooser = new JFileChooser();
-                    jChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                    jChooser.setFileFilter(filter);
-                    int returnval = jChooser.showOpenDialog(null);
-                    if (returnval == JFileChooser.APPROVE_OPTION) {
-                        dataNew = new DataSection();
-                        String path = jChooser.getSelectedFile().getPath();
-                        input = new InfoReader(path, dataNew);
-                        try {
-                            input.readFile();
-                        } catch (IOException | FileFormatException err) {
-                            JOptionPane.showMessageDialog(null, err, "Error", JOptionPane.ERROR_MESSAGE);
-                        }
-                        input = null;
-                    }
+                    importINF();
                 }
             }.start();
         } else if (s == item12){
-            if(dataNew == null){
-                JOptionPane.showMessageDialog(null, "An inf file should be loaded first.", 
-                        "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            FileNameExtensionFilter filter = new FileNameExtensionFilter("PSCAD output file(*.out)","out");
-            JFileChooser jChooser = new JFileChooser();
-            jChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            jChooser.setFileFilter(filter);
-            int returnval = jChooser.showOpenDialog(null);
-            if (returnval == JFileChooser.APPROVE_OPTION) {
-                Progress p = new Progress(mainFrame, Progress.IMPORT);
-                new Thread() {
-                    public void run() {
-                        String path = jChooser.getSelectedFile().getPath();
-                        input = new DataReader(path, dataNew);
-                        try {
-                            input.readFile();
-                            p.setValue(50);
-                        } catch (IOException | FileFormatException err) {
-                            JOptionPane.showMessageDialog(null, err, "Error",
-                                    JOptionPane.ERROR_MESSAGE);
-                        }
-                        data = dataNew;
-                        dataNew = null;
-                        input = null;
-                        TimeSeriesData[] xy;
-                        try {
-                            xy = data.getAllData();
-                            tsp1.resetPanel();
-                            tsp1.addData(xy);
-                            p.setValue(80);
-                        } catch (NoDataException | ArrayOverflowException e1) {
-                            e1.printStackTrace();
-                        }
-                        tscp.refresh();
-                        tscp.setDataSection(data);
-                        p.setValue(100);
-                    }
-                }.start();
-                p.setVisible(true);
-            }
+            importData();
         } else if (s == item13){
             System.exit(0);
         }

@@ -19,6 +19,7 @@ import java.util.HashMap;
 
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -34,6 +35,7 @@ import org.jfree.chart.panel.CrosshairOverlay;
 import org.jfree.chart.plot.Crosshair;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.LegendTitle;
 import org.jfree.data.Range;
 import org.jfree.data.general.DatasetUtilities;
 import org.jfree.data.xy.DefaultXYDataset;
@@ -189,7 +191,7 @@ public class TimeSeriesPanel extends JPanel implements MouseListener, MouseMotio
         this.setBackground(Color.WHITE);
 
         this.xyData = new DefaultXYDataset();
-        this.chart = ChartFactory.createXYLineChart(null, "time/s", "value",
+        this.chart = ChartFactory.createXYLineChart(null, "Time/s", "Value",
                 xyData);
         this.xyPlot = (XYPlot) this.chart.getPlot();
         // set the grid color and background color
@@ -197,10 +199,13 @@ public class TimeSeriesPanel extends JPanel implements MouseListener, MouseMotio
         this.xyPlot.setDomainGridlinePaint(Color.GRAY);
         this.xyPlot.setRangeGridlinePaint(Color.GRAY);
         XYLineAndShapeRenderer r = (XYLineAndShapeRenderer) this.xyPlot.getRenderer();
-        BasicStroke stroke = new BasicStroke(1.5f);
+        BasicStroke stroke = new BasicStroke(DpiSetting.convertFloat(1.5f));
         r.setStroke(stroke);
         r.setBaseSeriesVisible(false);
         
+        LegendTitle legendTitle = chart.getLegend();
+        Font font = new Font("Times New Roman", Font.TRUETYPE_FONT, DpiSetting.getNormalFontSize());
+        legendTitle.setItemFont(font);
         XYTitleAnnotation xyta = new XYTitleAnnotation(0.001, 0.999,
                 chart.getLegend(), RectangleAnchor.TOP_LEFT);
         this.xyPlot.addAnnotation(xyta);
@@ -208,12 +213,20 @@ public class TimeSeriesPanel extends JPanel implements MouseListener, MouseMotio
 
         this.cp = new ChartPanel(chart, false, false, false, false, false);
         this.cp.setMouseZoomable(false);
+        this.cp.setMaximumDrawWidth(3200);
+        this.cp.setMaximumDrawHeight(1800);
         this.addCrosshair();
         this.cp.addChartMouseListener(new crosshairListener());
         this.xLimit = new MyRange(0, 10);
         this.yLimit = new MyRange(0, 10);
         this.xAxis = this.xyPlot.getDomainAxis();
         this.yAxis = this.xyPlot.getRangeAxis();
+        font = new Font("Times New Roman", Font.TRUETYPE_FONT, DpiSetting.getMenuSize());
+        this.xAxis.setLabelFont(font);
+        this.yAxis.setLabelFont(font);
+        font = new Font("Times New Roman", Font.TRUETYPE_FONT, DpiSetting.getNormalFontSize());
+        this.xAxis.setTickLabelFont(font);
+        this.yAxis.setTickLabelFont(font);
 
         this.ySlider = new SliderPanel(JSlider.VERTICAL);
         this.ySlider.addMouseWheelListener(new MyMouseWheelListener(this.yAxis,

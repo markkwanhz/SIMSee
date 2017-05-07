@@ -47,4 +47,12 @@ public class DpiSetting {
         h = h*dpi/defaultDPI;
         return new Dimension((int)w, (int)h);
     }
+    
+    public static double convertDouble(double d) {
+        return d*dpi/defaultDPI;
+    }
+    
+    public static float convertFloat(float f){
+        return f*dpi/defaultDPI;
+    }
 }

@@ -103,8 +103,9 @@ public class FFTAnalysis {
     private double[] getFreq() {
         int len = yData.length / 2 + 1;
         double[] temp = new double[len];
-        double ff = Double.parseDouble(this.prop
-                .getProperty("FundamentalFrequency"));
+        String fAxis = this.prop.getProperty("FrequencyAxis");
+        double ff =  fAxis.equals(FFTProperties.Hertz)?Double.parseDouble(this.prop
+                .getProperty("FundamentalFrequency")) : 1;
         double cnt = Double.parseDouble(this.prop.getProperty("NumberOfCycle"));
         double upperBound = Double.parseDouble(this.prop
                 .getProperty("MaxFrequency"));

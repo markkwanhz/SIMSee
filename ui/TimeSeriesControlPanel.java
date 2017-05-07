@@ -131,7 +131,7 @@ public class TimeSeriesControlPanel extends JPanel implements ItemListener,
         setBackground(Color.WHITE);
         add(signalPane);
         add(crosshairPane);
-        setPreferredSize(new Dimension(220, 600));
+        setPreferredSize(DpiSetting.getFittedDimension(new Dimension(220, 600)));
 
         allList = new HashMap<String,JCheckBox>();
         listContent = new HashMap<String, Vector<JCheckBox>>();

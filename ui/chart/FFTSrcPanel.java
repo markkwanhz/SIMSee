@@ -75,22 +75,32 @@ public class FFTSrcPanel extends ChartPanel{
     }
     
     private TimeSeriesData tsData;
+    private FFTProperties prop;
     /**
      * Set the data to be displayed
      * @param d contains the TimeSeries data
+     * @throws XYLengthException 
+     * @throws ArrayOverflowException 
      */
-    public void setData(TimeSeriesData d){
+    public void setData(TimeSeriesData d) 
+            throws ArrayOverflowException, XYLengthException{
+        if(d.getName().equals(tsData.getName()))
+            return;
         tsData = d;
+        setControl(prop);
     }
     
     /**
-     * Change the figure control
+     * Change the figure control. This method will refresh the figure.
      * @param p
      * @throws ArrayOverflowException 
      * @throws XYLengthException 
      */
     public void setControl(FFTProperties p) 
             throws ArrayOverflowException, XYLengthException{
+        prop = p;
+        if(tsData == null)
+            return;
         double start = Double.parseDouble(p.getProperty("StartTime"));
         TimeSeriesData[] data = tsData.split(start, p);
         fftSrcData.addSeries(data[0].getName(), data[0].getData());
