@@ -28,19 +28,17 @@ public class Progress extends JDialog implements Observer {
     public static final String CALPOWER = "Calculating power...";
     
     private JProgressBar jpb;
-    private JFrame mainFrame;
     private JLabel label;
     private Set se; 
     
     public Progress(JFrame f, String type){
         super(f, "Processing", true);
-        mainFrame = f;
-        initGUI(type);
+        initGUI(f ,type);
         se = new Set();
         se.addObserver(this);
     }
     
-    private void initGUI(String type) {
+    private void initGUI(JFrame mainFrame, String type) {
         jpb = new JProgressBar(0, 100);
         label = new JLabel(type);
         jpb.setBackground(Color.WHITE);
