@@ -1,0 +1,6 @@
+PGB(1)         Output  Desc="U:1"  Group="Main"  Max=2.0  Min=-2.0  Units=""
+PGB(2)         Output  Desc="U:2"  Group="Main"  Max=2.0  Min=-2.0  Units=""
+PGB(3)         Output  Desc="U:3"  Group="Main"  Max=2.0  Min=-2.0  Units=""
+PGB(4)         Output  Desc="I:1"  Group="Main"  Max=2.0  Min=-2.0  Units=""
+PGB(5)         Output  Desc="I:2"  Group="Main"  Max=2.0  Min=-2.0  Units=""
+PGB(6)         Output  Desc="I:3"  Group="Main"  Max=2.0  Min=-2.0  Units=""
