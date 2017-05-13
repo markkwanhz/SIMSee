@@ -51,6 +51,7 @@ public class MainWindow implements ActionListener {
     //Page2 FFT analysis
     private FFTProperties fftp;
     private FFTResultsPanel fftPanel;
+    private FFTControlPanel fftcp;
     
     //Page3 Power analysis
     private TimeSeriesPanel tsp2;
@@ -77,6 +78,7 @@ public class MainWindow implements ActionListener {
         
         genMenu();
         genTab1();
+        genTab2();
         
         mainFrame.setJMenuBar(menuBar);
         
@@ -129,6 +131,22 @@ public class MainWindow implements ActionListener {
         tab1.add(tsp1, "Center");
         tab1.add(tscp,"East");
         topTab.add(" Signal Inspector ", tab1);
+    }
+    
+    private void genTab2(){
+        JPanel tab2 = new JPanel();
+        tab2.setBorder(new EmptyBorder(5,5,5,5));
+        tab2.setBackground(Color.WHITE);
+        try {
+            fftPanel = new FFTResultsPanel(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        fftcp = new FFTControlPanel(data, fftp);
+        tab2.setLayout(new BorderLayout());
+        tab2.add(fftPanel,"Center");
+        tab2.add(fftcp,"East");
+        topTab.add(" FFT Analysis ", tab2);
     }
     
     /**

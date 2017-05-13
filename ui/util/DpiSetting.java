@@ -55,4 +55,9 @@ public class DpiSetting {
     public static float convertFloat(float f){
         return f*dpi/defaultDPI;
     }
+    
+    public static int convertInt(int i){
+        return i*dpi/defaultDPI;
+    }
+    
 }
