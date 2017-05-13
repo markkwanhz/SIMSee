@@ -56,6 +56,8 @@ public class FFTResultsPanel extends JPanel {
                 false, true, false);
         cp = new ChartPanel(barChart,false, false, false, false, false);
         cp.setMouseZoomable(false);
+        cp.setMaximumDrawWidth(3200);
+        cp.setMaximumDrawHeight(1800);
         xyPlot = barChart.getXYPlot();
         xyPlot.setBackgroundPaint(Color.WHITE);
         xyPlot.setDomainGridlinesVisible(false);

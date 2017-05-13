@@ -72,6 +72,8 @@ public class FFTSrcPanel extends ChartPanel{
         
         this.setChart(signalChart);
         this.setMouseZoomable(false);
+        this.setMaximumDrawWidth(3200);
+        this.setMaximumDrawHeight(1800);
     }
     
     private TimeSeriesData tsData;

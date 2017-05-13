@@ -26,6 +26,10 @@ public class DataSection {
         this.signalName.add(s[1]);
     }
 
+    /**
+     * List all available signal types in the data section
+     * @return 
+     */
     public String[][] listTypes() {
         String[][] ans = new String[2][];
         ans[0] = this.property.listTypes(0).split(" ");
@@ -33,10 +37,27 @@ public class DataSection {
         return ans;
     }
 
+    /**
+     * List all available signals that fit the given 
+     * key and type in the data section
+     * @param key "group" or "type"
+     * @param type available categories in "group" or "type" 
+     * according to <b>key</b>
+     * @return
+     */
     public String[] listNames(String key, String type) {
         int index = key.equals("type")? 0 : 1;
         return this.property.listNames(index, type).split(" ");
     }
+    
+    /**
+     * List all available signals in the data section
+     * @return
+     */
+    public Object[] listNames(){
+        return signalName.toArray();
+    }
+
 
     public void registerData(int signalIndex, double signal) {
         if (signalIndex == 0) {
@@ -141,5 +162,5 @@ public class DataSection {
         signalName.clear();
         time = new SignalData(null);
     }
-
+   
 }
