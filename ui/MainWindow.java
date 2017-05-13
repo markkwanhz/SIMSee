@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 
+import javax.swing.BorderFactory;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -21,11 +22,14 @@ import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import layout.TableLayout;
 import ui.chart.FFTResultsPanel;
+import ui.chart.FFTSrcPanel;
 import ui.chart.TimeSeriesPanel;
 import ui.util.DpiSetting;
 import util.data.TimeSeriesData;
 import util.database.DataSection;
+import util.exception.ArrayLengthException;
 import util.exception.ArrayOverflowException;
 import util.exception.FileFormatException;
 import util.exception.NoDataException;
@@ -37,6 +41,8 @@ import util.fileread.InfoReader;
 import util.power.PowerAnalysis;
 
 public class MainWindow implements ActionListener {
+    public static String PowerCalculate = "Power Calculate";
+    
     //Top frame
     private JFrame mainFrame;
     private JTabbedPane topTab;
@@ -50,11 +56,13 @@ public class MainWindow implements ActionListener {
     
     //Page2 FFT analysis
     private FFTProperties fftp;
+    private FFTSrcPanel fftsp;
     private FFTResultsPanel fftPanel;
     private FFTControlPanel fftcp;
     
     //Page3 Power analysis
     private TimeSeriesPanel tsp2;
+    private PowerControlPanel pcp;
     
     //Data and utils
     private DataSection data;
@@ -79,10 +87,12 @@ public class MainWindow implements ActionListener {
         genMenu();
         genTab1();
         genTab2();
+        genTab3();
         
         mainFrame.setJMenuBar(menuBar);
         
         mainFrame.setSize(DpiSetting.getFittedDimension(new Dimension(1000, 650)));
+        //mainFrame.setUndecorated(true);
         mainFrame.setVisible(true);
     }
     
@@ -120,6 +130,9 @@ public class MainWindow implements ActionListener {
         
     }
     
+    /**
+     * generate tab1, displaying signal inspector
+     */
     private void genTab1() {
         JPanel tab1 = new JPanel();
         tab1.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -133,20 +146,52 @@ public class MainWindow implements ActionListener {
         topTab.add(" Signal Inspector ", tab1);
     }
     
+    /**
+     * generate tab2, displaying fft
+     */
     private void genTab2(){
         JPanel tab2 = new JPanel();
+        JPanel chart = new JPanel();
         tab2.setBorder(new EmptyBorder(5,5,5,5));
         tab2.setBackground(Color.WHITE);
         try {
             fftPanel = new FFTResultsPanel(null);
+            fftPanel.setBorder(BorderFactory.createTitledBorder("FFT analysis"));
+            fftsp = new FFTSrcPanel();
+            fftsp.setBorder(BorderFactory.createTitledBorder("Signal"));
         } catch (Exception e) {
             e.printStackTrace();
         }
         fftcp = new FFTControlPanel(data, fftp);
         tab2.setLayout(new BorderLayout());
-        tab2.add(fftPanel,"Center");
+        double border = DpiSetting.convertDouble(5);
+        double[][] size = {{border,TableLayout.FILL,border},{border,0.4,border,0.6,border}};
+        TableLayout layout = new TableLayout(size);
+        chart.setLayout(layout);
+        chart.setBackground(Color.WHITE);
+        chart.add(fftsp,"1,1");
+        chart.add(fftPanel,"1,3");
+        tab2.add(chart,"Center");
         tab2.add(fftcp,"East");
         topTab.add(" FFT Analysis ", tab2);
+    }
+    
+    /**
+     * generate tab3, displaying power calculating result
+     */
+    private void genTab3(){
+        pcp = new PowerControlPanel();
+        tsp2 = new TimeSeriesPanel();
+        tsp2.setTitle("Power Analysis");
+        JPanel tab3 = new JPanel();
+        int border = DpiSetting.convertInt(5);
+        tab3.setBorder(BorderFactory.createEmptyBorder(border,border,border,border));
+        tab3.setLayout(new BorderLayout());
+        tab3.add(pcp,"East");
+        tab3.add(tsp2,"Center");
+        tab3.setBackground(Color.WHITE);
+        topTab.add(" Power calculation ", tab3);
+        pcp.addButtonListener(this);
     }
     
     /**
@@ -209,10 +254,25 @@ public class MainWindow implements ActionListener {
                     }
                     tscp.refresh();
                     tscp.setDataSection(data);
+                    pcp.updateData(data);
                     p.setValue(100);
                 }
             }.start();
             p.setVisible(true);
+        }
+    }
+    
+    private void calculatePower(String[] s){
+        try {
+            TimeSeriesData u = data.querySignal(s[0]);
+            TimeSeriesData i = data.querySignal(s[1]);
+            power = new PowerAnalysis(u, i, 50);
+            TimeSeriesData p = power.getPower();
+            tsp2.resetPanel();
+            tsp2.addData(p);
+            tsp2.setSignalVisible("Power", true);
+        } catch (NoDataException | ArrayOverflowException | ArrayLengthException e) {
+            e.printStackTrace();
         }
     }
 
@@ -237,7 +297,7 @@ public class MainWindow implements ActionListener {
     }
 
     /**
-     * Decided what to do when pressing the menu items
+     * Decided what to do when pressing buttons
      */
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -252,6 +312,8 @@ public class MainWindow implements ActionListener {
             importData();
         } else if (s == item13){
             System.exit(0);
+        } else if (e.getActionCommand().equals(PowerCalculate)){
+            calculatePower(pcp.getSignals());
         }
     }
 

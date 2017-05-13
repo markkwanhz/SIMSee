@@ -220,7 +220,7 @@ public class TimeSeriesPanel extends JPanel implements MouseListener, MouseMotio
         this.yLimit = new MyRange(0, 10);
         this.xAxis = this.xyPlot.getDomainAxis();
         this.yAxis = this.xyPlot.getRangeAxis();
-        font = new Font("Times New Roman", Font.TRUETYPE_FONT, DpiSetting.getMenuSize());
+        font = new Font("Times New Roman", Font.BOLD, DpiSetting.getMenuSize());
         this.xAxis.setLabelFont(font);
         this.yAxis.setLabelFont(font);
         font = new Font("Times New Roman", Font.TRUETYPE_FONT, DpiSetting.getNormalFontSize());
@@ -312,6 +312,14 @@ public class TimeSeriesPanel extends JPanel implements MouseListener, MouseMotio
             throw new Exception("Illegal signal name for crosshair.");
         }
         this.crosshairIndex = index;
+    }
+    
+    /**
+     * Set the title of the chart
+     * @param title the title
+     */
+    public void setTitle(String title){
+        chart.setTitle(title);
     }
     
     /**
