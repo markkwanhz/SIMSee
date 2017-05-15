@@ -27,12 +27,15 @@ import ui.chart.FFTResultsPanel;
 import ui.chart.FFTSrcPanel;
 import ui.chart.TimeSeriesPanel;
 import ui.util.DpiSetting;
+import util.data.FFTData;
 import util.data.TimeSeriesData;
 import util.database.DataSection;
 import util.exception.ArrayLengthException;
 import util.exception.ArrayOverflowException;
 import util.exception.FileFormatException;
+import util.exception.InvalidInputException;
 import util.exception.NoDataException;
+import util.exception.XYLengthException;
 import util.fft.FFTAnalysis;
 import util.fft.FFTProperties;
 import util.fileread.DataReader;
@@ -41,7 +44,14 @@ import util.fileread.InfoReader;
 import util.power.PowerAnalysis;
 
 public class MainWindow implements ActionListener {
-    public static String PowerCalculate = "Power Calculate";
+    /*These final static fields are used for action commands*/
+    public static String POWERCALCULATE = "Power Calculate";
+    public static String FFTREFRESH = "FFT Refresh";
+    public static String DISPLAY = "Display";
+    public static String IMPORTINF = "Import Inf";
+    public static String IMPORTDATA = "Import Data";
+    public static String EXIT = "Exit";
+    public static String ABOUT = "About";
     
     //Top frame
     private JFrame mainFrame;
@@ -82,7 +92,9 @@ public class MainWindow implements ActionListener {
         mainFrame = new JFrame("PSCAD See");
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         topTab = new JTabbedPane();
-        mainFrame.setContentPane(topTab);
+        mainFrame.getContentPane().setLayout(new BorderLayout());
+        mainFrame.getContentPane().setBackground(Color.WHITE);
+        mainFrame.add(topTab,"Center");
         
         genMenu();
         genTab1();
@@ -97,10 +109,12 @@ public class MainWindow implements ActionListener {
     }
     
     //Menu Bar
-    JMenu menu1;
-    JMenuItem item11;
-    JMenuItem item12;
-    JMenuItem item13;
+    private JMenu menu1;
+    private JMenu menu3;
+    private JMenuItem item11;
+    private JMenuItem item12;
+    private JMenuItem item13;
+    private JMenuItem item31;
     
     /**
      * Generate the menu bar
@@ -111,23 +125,33 @@ public class MainWindow implements ActionListener {
         Font menuFont = new Font("Times New Roman", Font.PLAIN,
                 DpiSetting.getMenuSize());
         menu1 = new JMenu(" File ");
+        menu3 = new JMenu(" More ");
         menu1.setFont(menuFont);
+        menu3.setFont(menuFont);
         
         menuBar.add(menu1);
+        menuBar.add(menu3);
         
         item11 = new JMenuItem("Import .inf file");
+        item11.setActionCommand(IMPORTINF);
         item12 = new JMenuItem("Import output file(.out)");
+        item12.setActionCommand(IMPORTDATA);
         item13 = new JMenuItem("Exit");
+        item13.setActionCommand(EXIT);
+        item31 = new JMenuItem("About");
+        item31.setActionCommand(ABOUT);
         
         menu1.add(item11);
         menu1.add(item12);
         menu1.addSeparator();
         menu1.add(item13);
         
+        menu3.add(item31);
+        
         item11.addActionListener(this);
         item12.addActionListener(this);
         item13.addActionListener(this);
-        
+        item31.addActionListener(this);
     }
     
     /**
@@ -155,14 +179,16 @@ public class MainWindow implements ActionListener {
         tab2.setBorder(new EmptyBorder(5,5,5,5));
         tab2.setBackground(Color.WHITE);
         try {
-            fftPanel = new FFTResultsPanel(null);
+            fftPanel = new FFTResultsPanel(null, fftp);
             fftPanel.setBorder(BorderFactory.createTitledBorder("FFT analysis"));
             fftsp = new FFTSrcPanel();
+            fftsp.setControl(fftp);
             fftsp.setBorder(BorderFactory.createTitledBorder("Signal"));
         } catch (Exception e) {
             e.printStackTrace();
         }
         fftcp = new FFTControlPanel(data, fftp);
+        fftcp.addButtonListener(this);
         tab2.setLayout(new BorderLayout());
         double border = DpiSetting.convertDouble(5);
         double[][] size = {{border,TableLayout.FILL,border},{border,0.4,border,0.6,border}};
@@ -198,22 +224,26 @@ public class MainWindow implements ActionListener {
      * Import inf file, used in menu1 item1 action listener. 
      */
     private void importINF(){
-        FileNameExtensionFilter filter = new FileNameExtensionFilter("PSCAD project info file(*.inf)","inf");
-        JFileChooser jChooser = new JFileChooser();
-        jChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        jChooser.setFileFilter(filter);
-        int returnval = jChooser.showOpenDialog(null);
-        if (returnval == JFileChooser.APPROVE_OPTION) {
-            dataNew = new DataSection();
-            String path = jChooser.getSelectedFile().getPath();
-            input = new InfoReader(path, dataNew);
-            try {
-                input.readFile();
-            } catch (IOException | FileFormatException err) {
-                JOptionPane.showMessageDialog(null, err, "Error", JOptionPane.ERROR_MESSAGE);
+        new Thread(){
+            public void run(){
+                FileNameExtensionFilter filter = new FileNameExtensionFilter("PSCAD project info file(*.inf)","inf");
+                JFileChooser jChooser = new JFileChooser();
+                jChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                jChooser.setFileFilter(filter);
+                int returnval = jChooser.showOpenDialog(null);
+                if (returnval == JFileChooser.APPROVE_OPTION) {
+                    dataNew = new DataSection();
+                    String path = jChooser.getSelectedFile().getPath();
+                    input = new InfoReader(path, dataNew);
+                    try {
+                        input.readFile();
+                    } catch (IOException | FileFormatException err) {
+                        JOptionPane.showMessageDialog(null, err, "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                    input = null;
+                }
             }
-            input = null;
-        }
+        }.start();
     }
     
     private void importData(){
@@ -253,7 +283,9 @@ public class MainWindow implements ActionListener {
                         e1.printStackTrace();
                     }
                     tscp.refresh();
+                    fftsp.refresh();
                     tscp.setDataSection(data);
+                    fftcp.updateData(data);
                     pcp.updateData(data);
                     p.setValue(100);
                 }
@@ -263,17 +295,21 @@ public class MainWindow implements ActionListener {
     }
     
     private void calculatePower(String[] s){
-        try {
-            TimeSeriesData u = data.querySignal(s[0]);
-            TimeSeriesData i = data.querySignal(s[1]);
-            power = new PowerAnalysis(u, i, 50);
-            TimeSeriesData p = power.getPower();
-            tsp2.resetPanel();
-            tsp2.addData(p);
-            tsp2.setSignalVisible("Power", true);
-        } catch (NoDataException | ArrayOverflowException | ArrayLengthException e) {
-            e.printStackTrace();
-        }
+        new Thread(){
+            public void run(){
+                try {
+                    TimeSeriesData u = data.querySignal(s[0]);
+                    TimeSeriesData i = data.querySignal(s[1]);
+                    power = new PowerAnalysis(u, i, Double.parseDouble(s[2]));
+                    TimeSeriesData p = power.getPower();
+                    tsp2.resetPanel();
+                    tsp2.addData(p);
+                    tsp2.setSignalVisible("Power", true);
+                } catch (NoDataException | ArrayOverflowException | ArrayLengthException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
     }
 
     public static void main(String[] args) {
@@ -291,6 +327,7 @@ public class MainWindow implements ActionListener {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
+                @SuppressWarnings("unused")
                 MainWindow mw = new MainWindow();
             }
         });
@@ -301,20 +338,81 @@ public class MainWindow implements ActionListener {
      */
     @Override
     public void actionPerformed(ActionEvent e) {
-        Object s = e.getSource();
-        if(s == item11){
-            new Thread(){
-                public void run(){
-                    importINF();
-                }
-            }.start();
-        } else if (s == item12){
-            importData();
-        } else if (s == item13){
-            System.exit(0);
-        } else if (e.getActionCommand().equals(PowerCalculate)){
-            calculatePower(pcp.getSignals());
+        String s = e.getActionCommand();
+        try{
+            if(s.equals(IMPORTINF)){
+                importINF();
+            } else if (s.equals(IMPORTDATA)){
+                importData();
+            } else if (s.equals(EXIT)){
+                System.exit(0);
+            } else if (s.equals(POWERCALCULATE)){
+                calculatePower(pcp.getSignals());
+            } else if (s.equals(FFTREFRESH)){
+                refreshFFTSrc();
+            } else if (s.equals(DISPLAY)){
+                fftDisplay();
+            } else if (s.equals(ABOUT)){
+                AboutDialog ad = new AboutDialog(mainFrame);
+                ad.setVisible(true);
+            }
+        } catch (InvalidInputException e1) {
+            JOptionPane.showMessageDialog(mainFrame, "Your input is invalid. Please check!", 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        } catch (NullPointerException exception){
+            return;
         }
+    }
+
+    private String fftSrcSignal;
+    private void fftDisplay() throws InvalidInputException {
+        if(fftcp.getStatus()==null){
+            throw new InvalidInputException();
+        }
+        TimeSeriesData src = fftsp.getFFTSrc();
+        if(fft == null){
+            fft = new FFTAnalysis(src, fftp);
+        } else {
+            fft.setFFT(src, fftp);
+        }
+        try{
+            FFTData ans = fft.fftAnalyse();
+            fftPanel.setDataSet(ans);
+        }catch(Exception e){
+            throw new InvalidInputException();
+        }
+    }
+
+    private void refreshFFTSrc() throws InvalidInputException {
+        if(fftcp.getStatus()==null){
+            throw new InvalidInputException();
+        };
+        new Thread(){
+            public void run(){
+                String[] status = fftcp.getStatus();
+                if(fftSrcSignal == null || !fftSrcSignal.equals(status[0])){
+                    try {
+                        TimeSeriesData td = data.querySignal(status[0]);
+                        fftSrcSignal = status[0];
+                        fftsp.setData(td);
+                    } catch (NoDataException | ArrayOverflowException | XYLengthException e) {
+                        JOptionPane.showMessageDialog(null, "Your input is invalid. Please check!", 
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                } else{
+                    try {
+                        fftsp.setControl(fftp);
+                    } catch (ArrayOverflowException | XYLengthException e) {
+                        JOptionPane.showMessageDialog(null, "Your input is invalid. Please check!", 
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
+                fftsp.switchFig(status[1]);
+            }
+        }.start();
     }
 
 }

@@ -11,6 +11,11 @@ import util.data.TimeSeriesData;
 import util.exception.ArrayLengthException;
 import util.exception.MaxFrequencyException;
 
+/**
+ * This class is used to do FFT Analysis.
+ * @author M
+ *
+ */
 public class FFTAnalysis {
     private static double PI = 3.1415926535897932384626433832795;
 
@@ -18,12 +23,26 @@ public class FFTAnalysis {
     private double res;
     private FFTProperties prop;
 
+    /**
+     * Constructor. 
+     * @param data Only the y-value is required, so you can construct this 
+     * TimeSeriesData with the two-dimension array {{y-value},{y-value}}
+     * instead of {{x-value (time)},{y-value}}
+     * @param p The FFTProperties
+     */
     public FFTAnalysis(TimeSeriesData data, FFTProperties p) {
         this.yData = data.getData()[1];
         this.res = data.getRes();
         this.prop = p;
     }
 
+    /**
+     * Change the fft data. 
+     * @param data Only the y-value is required, so you can construct this 
+     * TimeSeriesData with the two-dimension array {{y-value},{y-value}}
+     * instead of {{x-value (time)},{y-value}}
+     * @param p The FFTProperties
+     */
     public void setFFT(TimeSeriesData data, FFTProperties p) {
         this.yData = data.getData()[1];
         this.res = data.getRes();
@@ -108,7 +127,8 @@ public class FFTAnalysis {
                 .getProperty("FundamentalFrequency")) : 1;
         double cnt = Double.parseDouble(this.prop.getProperty("NumberOfCycle"));
         double upperBound = Double.parseDouble(this.prop
-                .getProperty("MaxFrequency"));
+                .getProperty("MaxFrequency"))*ff/Double.parseDouble(this.prop
+                        .getProperty("FundamentalFrequency"));
         Abs abs = new Abs();
         int k;
         for (k = 0; k < len; k++) {
@@ -151,7 +171,7 @@ public class FFTAnalysis {
         for (int k = 2; k < maxTHD; k++) {
             THD += valueTemp[k] * valueTemp[k];
         }
-        THD = root.value(THD) / valueTemp[1];
+        THD = root.value(THD) / valueTemp[Integer.parseInt(prop.getProperty("NumberOfCycle"))];
         return new FFTData(freq, value, ang, this.res, THD);
     }
 }

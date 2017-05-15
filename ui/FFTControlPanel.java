@@ -2,7 +2,7 @@ package ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.util.ArrayList;
+import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -17,6 +17,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
 import layout.TableLayout;
+import ui.chart.FFTSrcPanel;
 import ui.util.DpiSetting;
 import util.database.DataSection;
 import util.fft.FFTProperties;
@@ -28,15 +29,13 @@ public class FFTControlPanel extends JPanel {
     private JPanel pane2;
     
     //Data
-    private DataSection data;
+    //private DataSection data;
     private FFTProperties fftp;
-    private ArrayList<String> signalList;
     
     //Constructor
     public FFTControlPanel(DataSection data, FFTProperties fftp){
-        this.data = data;
+        //this.data = data;
         this.fftp = fftp;
-        signalList = new ArrayList<String>();
         genPane1();
         genPane2();
         BorderLayout layout = new BorderLayout();
@@ -49,6 +48,7 @@ public class FFTControlPanel extends JPanel {
         add(pane2, "Center");
     }
     
+    private JButton refresh;
     private JComboBox<String> signalName;
     private DefaultComboBoxModel<String> signalNameModel;
     private JRadioButton signal, fftWindow;
@@ -58,26 +58,31 @@ public class FFTControlPanel extends JPanel {
         pane1.setBorder(BorderFactory.createTitledBorder("Available Signals"));
         JLabel lab1 = new JLabel("Name:");
         JLabel lab2 = new JLabel("Display:");
+        refresh = new JButton("Refresh");
+        refresh.setActionCommand(MainWindow.FFTREFRESH);
         lab2.setHorizontalAlignment(SwingConstants.CENTER);
         signalNameModel = new DefaultComboBoxModel<>();
         signalName = new JComboBox<>(signalNameModel);
         ButtonGroup group = new ButtonGroup();
         signal = new JRadioButton("Signal", true);
+        signal.setBackground(Color.WHITE);
         fftWindow = new JRadioButton("FFT Window");
+        fftWindow.setBackground(Color.WHITE);
         group.add(signal);
         group.add(fftWindow);
         
         double border = DpiSetting.convertDouble(10);
         double[][] size = {
                 {border,0.3,border,0.7,border}, //columns
-                {border,TableLayout.FILL,5,TableLayout.FILL,5,TableLayout.FILL,border}//rows
+                {border,TableLayout.FILL,5,TableLayout.FILL,5,TableLayout.FILL,5,TableLayout.FILL,border}//rows
         };
         pane1.setLayout(new TableLayout(size));
-        pane1.add(lab1,"1,1,c,c");
-        pane1.add(signalName,"3,1,f,c");
-        pane1.add(lab2,"1,3,1,5");
-        pane1.add(signal,"3,3,c,c");
-        pane1.add(fftWindow,"3,5,c,c");
+        pane1.add(refresh,"1,1,l,c");
+        pane1.add(lab1,"1,3,c,c");
+        pane1.add(signalName,"3,3,f,c");
+        pane1.add(lab2,"1,5,1,7");
+        pane1.add(signal,"3,5,c,c");
+        pane1.add(fftWindow,"3,7,c,c");
     }
     
     private JTextField startTime, nCycles, fF, mF;
@@ -93,14 +98,14 @@ public class FFTControlPanel extends JPanel {
         JLabel lab4 = new JLabel("Max frequency(Hz):");
         JLabel lab5 = new JLabel("Max Frequency for THD computation:");
         JLabel lab6 = new JLabel("Frequency axis:");
-        startTime = new JTextField("");
-        nCycles = new JTextField("");
-        fF = new JTextField("");
-        mF = new JTextField("");
+        startTime = new JTextField("0");
+        nCycles = new JTextField("1");
+        fF = new JTextField("50");
+        mF = new JTextField("1000");
         
         String [] s1 = new String[2];
-        s1[0] = "Nyquist frequency";
-        s1[1] = "Max display frequency";
+        s1[0] = "Max display frequency";
+        s1[1] = "Nyquist frequency";
         maxTHDF = new JComboBox<>(s1);
         String [] s2 = new String[2];
         s2[0] = "Hertz";
@@ -108,13 +113,14 @@ public class FFTControlPanel extends JPanel {
         fAxis = new JComboBox<>(s2);
         
         dp = new JButton("Display");
+        dp.setActionCommand(MainWindow.DISPLAY);
         
         double border = DpiSetting.convertDouble(10);
         double[][] size = {
-                {border,DpiSetting.convertDouble(160),border,TableLayout.FILL,border}, //columns
-                {border,TableLayout.FILL,border,TableLayout.FILL,border,TableLayout.FILL,
-                    border,TableLayout.FILL,border,TableLayout.FILL,0.5*border,TableLayout.FILL,
-                    border,TableLayout.FILL,border,TableLayout.FILL,border}  //rows
+                {border,DpiSetting.convertDouble(160),0.5*border,TableLayout.FILL,border}, //columns
+                {border,DpiSetting.convertInt(30),0.5*border,DpiSetting.convertInt(30),0.5*border,DpiSetting.convertInt(30),
+                    0.5*border,DpiSetting.convertInt(30),0.5*border,DpiSetting.convertInt(30),0.5*border,DpiSetting.convertInt(30),
+                    0.5*border,DpiSetting.convertInt(30),0.5*border,DpiSetting.convertInt(30),TableLayout.FILL}  //rows
         };
         TableLayout layout = new TableLayout(size);
         pane2.setLayout(layout);
@@ -140,6 +146,57 @@ public class FFTControlPanel extends JPanel {
      * @param d
      */
     public void updateData(DataSection d){
+        signalNameModel.removeAllElements();
+        Object[] s = d.listNames();
+        for(int k = 0; k<s.length; k++){
+            signalNameModel.addElement((String)s[k]);
+        }
+    }
+    
+    public void addButtonListener(ActionListener l){
+        refresh.addActionListener(l);
+        dp.addActionListener(l);
+    }
+    
+    /**
+     * Get current status of the fft control panel and 
+     * update fft properties as well.
+     * @return If the return is null, it means that some 
+     * (UI) input's format is incorrect.
+     */
+    public String[] getStatus(){
+        String[] status = new String[2];
+        status[0] = signalName.getSelectedItem().toString();
+        status[1] = signal.isSelected()? FFTSrcPanel.SignalWindow:FFTSrcPanel.FFTWindow;
         
+        String sTime = startTime.getText();
+        String nC = nCycles.getText();
+        String ff = fF.getText();
+        String mf = mF.getText();
+        try{
+            Double.parseDouble(sTime);
+            Integer.parseInt(nC);
+            Double.parseDouble(ff);
+            Double.parseDouble(mf);
+        } catch(Exception e){
+            return null;
+        }
+        fftp.setProperty("StartTime", sTime);
+        fftp.setProperty("NumberOfCycle", nC);
+        fftp.setProperty("FundamentalFrequency", ff);
+        fftp.setProperty("MaxFrequency", mf);
+        if (maxTHDF.getSelectedItem().toString()
+                .equals("Max display frequency")) {
+            fftp.setProperty("MaxTHDFrequency", FFTProperties.MaxDisplayFrequency);
+        } else {
+            fftp.setProperty("MaxTHDFrequency", FFTProperties.NyquistFrequency);
+        }
+        if (fAxis.getSelectedItem().toString()
+                .equals("Hertz")) {
+            fftp.setProperty("FrequencyAxis", FFTProperties.Hertz);
+        } else {
+            fftp.setProperty("FrequencyAxis", FFTProperties.HarmonicOrder);
+        }
+        return status;
     }
 }

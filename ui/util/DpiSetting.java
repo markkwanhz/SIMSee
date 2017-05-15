@@ -4,17 +4,18 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 
 public class DpiSetting {
-    private static int defaultDPI = 96;
-    private static int dpi = 96;
-    private static int normalSize = 12;
-    private static int menuSize = 14;
+    private static int DEFAULTDPI = 96;
+    private static int DPI = 96;
+    private static int NORMALSIZE = 12;
+    private static int MENUSIZE = 14;
+    private static int TITLESIZE = 16;
     
     /**
      * Update the program's dpi setting from current running environment.
      * You should call this method before instantiating any GUI components. 
      */
     public static void updateDPI(){
-        dpi = Toolkit.getDefaultToolkit().getScreenResolution();
+        DPI = Toolkit.getDefaultToolkit().getScreenResolution();
     }
     
     /**
@@ -22,7 +23,7 @@ public class DpiSetting {
      * @return Normal text font size
      */
     public static int getNormalFontSize(){
-        return dpi*normalSize/defaultDPI;
+        return DPI*NORMALSIZE/DEFAULTDPI;
     }
     
     /**
@@ -30,7 +31,7 @@ public class DpiSetting {
      * @return Menu font size
      */
     public static int getMenuSize(){
-        return dpi*menuSize/defaultDPI;
+        return DPI*MENUSIZE/DEFAULTDPI;
     }
     
     /**
@@ -43,21 +44,29 @@ public class DpiSetting {
     public static Dimension getFittedDimension(Dimension b){
         double w = b.getWidth();
         double h = b.getHeight();
-        w = w*dpi/defaultDPI;
-        h = h*dpi/defaultDPI;
+        w = w*DPI/DEFAULTDPI;
+        h = h*DPI/DEFAULTDPI;
         return new Dimension((int)w, (int)h);
     }
     
     public static double convertDouble(double d) {
-        return d*dpi/defaultDPI;
+        return d*DPI/DEFAULTDPI;
     }
     
     public static float convertFloat(float f){
-        return f*dpi/defaultDPI;
+        return f*DPI/DEFAULTDPI;
     }
     
     public static int convertInt(int i){
-        return i*dpi/defaultDPI;
+        return i*DPI/DEFAULTDPI;
+    }
+
+    /**
+     * Get the title font size fitted current dpi settings
+     * @return Title font size
+     */
+    public static int getTitleSize() {
+        return DPI*TITLESIZE/DEFAULTDPI;
     }
     
 }

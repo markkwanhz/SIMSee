@@ -2,16 +2,20 @@ package ui.chart;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.TextTitle;
 import org.jfree.data.xy.DefaultXYDataset;
 
+import ui.util.DpiSetting;
 import util.data.TimeSeriesData;
 import util.exception.ArrayOverflowException;
+import util.exception.InvalidInputException;
 import util.exception.XYLengthException;
 import util.fft.FFTProperties;
 
@@ -37,14 +41,26 @@ public class FFTSrcPanel extends ChartPanel{
         setBackground(Color.WHITE);
         
         //Initialize
+        Font font = new Font("Arial", Font.BOLD, DpiSetting.getTitleSize());
         signalData = new DefaultXYDataset();
         fftSrcData = new DefaultXYDataset();
-        signalChart = ChartFactory.createXYLineChart("Signal", "time/s", "value", signalData);
+        signalChart = ChartFactory.createXYLineChart(null, "time/s", "value", signalData);
+        signalChart.setTitle(new TextTitle("Signal", font));
         signalPlot = signalChart.getXYPlot();
-        fftSrcChart = ChartFactory.createXYLineChart("FFT Window", "time/s", "value", fftSrcData);
+        fftSrcChart = ChartFactory.createXYLineChart(null, "time/s", "value", fftSrcData);
+        fftSrcChart.setTitle(new TextTitle("FFT Window", font));
         fftSrcPlot = fftSrcChart.getXYPlot();
         
-        
+        font = new Font("Times New Roman", Font.TRUETYPE_FONT, DpiSetting.getNormalFontSize());
+        signalPlot.getDomainAxis().setTickLabelFont(font);
+        signalPlot.getRangeAxis().setTickLabelFont(font);
+        fftSrcPlot.getDomainAxis().setTickLabelFont(font);
+        fftSrcPlot.getRangeAxis().setTickLabelFont(font);
+        font = new Font("Times New Roman", Font.BOLD, DpiSetting.getMenuSize());
+        signalPlot.getDomainAxis().setLabelFont(font);
+        signalPlot.getRangeAxis().setLabelFont(font);
+        fftSrcPlot.getDomainAxis().setLabelFont(font);
+        fftSrcPlot.getRangeAxis().setLabelFont(font);
         //Background setting
         signalPlot.setBackgroundPaint(Color.WHITE);
         signalPlot.setDomainGridlinePaint(Color.GRAY);
@@ -79,14 +95,15 @@ public class FFTSrcPanel extends ChartPanel{
     private TimeSeriesData tsData;
     private FFTProperties prop;
     /**
-     * Set the data to be displayed
+     * Set the data to be displayed. Before calling this method,
+     * you should update the FFT properties first.
      * @param d contains the TimeSeries data
      * @throws XYLengthException 
      * @throws ArrayOverflowException 
      */
     public void setData(TimeSeriesData d) 
             throws ArrayOverflowException, XYLengthException{
-        if(d.getName().equals(tsData.getName()))
+        if(tsData!=null && d.getName().equals(tsData.getName()))
             return;
         tsData = d;
         setControl(prop);
@@ -133,5 +150,34 @@ public class FFTSrcPanel extends ChartPanel{
             this.setMouseZoomable(false);
             this.restoreAutoBounds();
         }
+    }
+    
+    /**
+     * @throws XYLengthException 
+     * @throws ArrayOverflowException 
+     * 
+     */
+    public TimeSeriesData getFFTSrc() 
+            throws InvalidInputException{
+        if(tsData==null)
+            throw new NullPointerException();
+        double start = 0;
+        try{
+            start = Double.parseDouble(prop.getProperty("StartTime"));
+            TimeSeriesData src = tsData.split(start, prop)[0];
+            return src;
+        } catch (Exception e){
+            throw new InvalidInputException();
+        }
+    }
+    
+    /**
+     * Refresh the FFT Src Panel
+     */
+    public void refresh(){
+        signalData.removeSeries("front");
+        signalData.removeSeries("back");
+        signalData.removeSeries("FFTSrc");
+        fftSrcData.removeSeries("FFTSrc");
     }
 }
