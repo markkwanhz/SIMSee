@@ -27,7 +27,7 @@ public class PowerAnalysis {
         double[] cur = i.getData()[1];
         int index = 0, ii;
         double r = time[1] - time[0];
-        int sampleCnt = (int) (1/(r*50));
+        int sampleCnt = (int) (1/(r*fundamentalF));
         double p;
         TimeSeriesData power = new TimeSeriesData("Power", 1/fundamentalF);
         while(index + sampleCnt <= time.length){

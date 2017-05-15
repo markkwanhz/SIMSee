@@ -35,6 +35,7 @@ import org.jfree.chart.plot.Crosshair;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
+import org.jfree.chart.title.TextTitle;
 import org.jfree.data.Range;
 import org.jfree.data.general.DatasetUtilities;
 import org.jfree.data.xy.DefaultXYDataset;
@@ -319,7 +320,9 @@ public class TimeSeriesPanel extends JPanel implements MouseListener, MouseMotio
      * @param title the title
      */
     public void setTitle(String title){
-        chart.setTitle(title);
+        Font font = new Font("Arial", Font.BOLD, DpiSetting.getTitleSize());
+        TextTitle t = new TextTitle(title, font);
+        chart.setTitle(t);
     }
     
     /**

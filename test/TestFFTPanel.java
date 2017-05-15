@@ -60,7 +60,7 @@ public class TestFFTPanel {
         
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         DpiSetting.updateDPI();
-        FFTResultsPanel fftp = new FFTResultsPanel(ans);
+        FFTResultsPanel fftp = new FFTResultsPanel(ans,fftP);
         JFrame haha = new JFrame();
         haha.add(fftp);
         haha.pack();
