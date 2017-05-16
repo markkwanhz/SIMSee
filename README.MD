@@ -1,6 +1,10 @@
 # PSCAD See
 
-The program is designed to read and show data from PSCAD's simulation result files.
+The program is designed to read and show data from PSCAD's simulation result files:
+
+- Show charts of signals
+- FFT Analysis
+- Power Calculator
 
 #### How to use
 
