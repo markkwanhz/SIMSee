@@ -1,7 +1,6 @@
 package ui.chart;
 
 import java.awt.BasicStroke;
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
@@ -21,6 +20,8 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import layout.TableLayout;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartMouseEvent;
@@ -239,11 +240,18 @@ public class TimeSeriesPanel extends JPanel implements MouseListener, MouseMotio
         this.xSlider.addListener(new SlidingListener(this.xAxis, this.xLimit,
                 this.xSlider));
 
-        BorderLayout layout = new BorderLayout();
+//        BorderLayout layout = new BorderLayout();
+//        this.setLayout(layout);
+//        this.add(ySlider, "West");
+//        this.add(xSlider, "South");
+//        this.add(cp, "Center");
+        double [][]size = {{DpiSetting.convertDouble(2),DpiSetting.convertDouble(15),TableLayout.FILL},
+                {TableLayout.FILL,DpiSetting.convertDouble(15),DpiSetting.convertDouble(2)}};
+        TableLayout layout = new TableLayout(size);
         this.setLayout(layout);
-        this.add(ySlider, "West");
-        this.add(xSlider, "South");
-        this.add(cp, "Center");
+        this.add(ySlider,"1,0,f,f");
+        this.add(xSlider,"2,1,f,f");
+        this.add(cp,"2,0,f,f");
         
         domainRange = new HashMap<String,MyRange>();
         rangeRange = new HashMap<String,MyRange>();
@@ -390,6 +398,11 @@ public class TimeSeriesPanel extends JPanel implements MouseListener, MouseMotio
         setCrosshairVisible(false);
     }
     
+    public ChartPanel getPrintComponent(){
+        return cp;
+    }
+    
+    
     //The following methods are for dragging the chart using mouse
 
     Point startPoint;
@@ -401,6 +414,8 @@ public class TimeSeriesPanel extends JPanel implements MouseListener, MouseMotio
         if(e.getClickCount() == 2){
             xAxis.setRange(xLimit.getRange());
             yAxis.setRange(yLimit.getRange());
+            xSlider.setSlider(0);
+            ySlider.setSlider(0);
         }
     }
 

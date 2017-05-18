@@ -127,6 +127,10 @@ public class FFTResultsPanel extends JPanel {
         updateList();
     }
     
+    public ChartPanel getPrintComponent(){
+        return cp;
+    }
+    
     private void updateList(){
         listContent.removeAllElements();
         String temp;

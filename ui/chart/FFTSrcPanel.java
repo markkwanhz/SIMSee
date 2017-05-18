@@ -44,10 +44,10 @@ public class FFTSrcPanel extends ChartPanel{
         Font font = new Font("Arial", Font.BOLD, DpiSetting.getTitleSize());
         signalData = new DefaultXYDataset();
         fftSrcData = new DefaultXYDataset();
-        signalChart = ChartFactory.createXYLineChart(null, "time/s", "value", signalData);
+        signalChart = ChartFactory.createXYLineChart(null, "Time/s", "Value", signalData);
         signalChart.setTitle(new TextTitle("Signal", font));
         signalPlot = signalChart.getXYPlot();
-        fftSrcChart = ChartFactory.createXYLineChart(null, "time/s", "value", fftSrcData);
+        fftSrcChart = ChartFactory.createXYLineChart(null, "Time/s", "Value", fftSrcData);
         fftSrcChart.setTitle(new TextTitle("FFT Window", font));
         fftSrcPlot = fftSrcChart.getXYPlot();
         

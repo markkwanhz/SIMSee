@@ -15,18 +15,18 @@ public class TransparentSlider extends JSlider {
     /*For serialization*/
     private static final long serialVersionUID = 7224126963967186723L;
     
-    private float alpha = 0.4f;
+    private float alpha = 0.2f;
     
     class MyMouseListener extends MouseAdapter{
         @Override
         public void mouseEntered(MouseEvent arg0) {
-           alpha = 0.8f;
+           alpha = 0.6f;
            repaint();
         }
 
         @Override
         public void mouseExited(MouseEvent arg0) {
-           alpha = 0.4f;
+           alpha = 0.2f;
            repaint();
         } 
     }
