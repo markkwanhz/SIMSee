@@ -23,8 +23,6 @@ import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import org.freehep.util.export.ExportDialog;
-
 import layout.TableLayout;
 import ui.chart.FFTResultsPanel;
 import ui.chart.FFTSrcPanel;
@@ -52,8 +50,8 @@ public class MainWindow implements ActionListener {
     public static String POWERCALCULATE = "Power Calculate";
     public static String FFTREFRESH = "FFT Refresh";
     public static String DISPLAY = "Display";
-    public static String IMPORTINF = "Import Inf";
-    public static String IMPORTDATA = "Import Data";
+    public static String IMPORTPSCAD = "Import Inf";
+    public static String UPDATEPSCADDATA = "Import Data";
     public static String EXIT = "Exit";
     public static String ExportSignalInspector = "Exportsi";
     public static String ExportFFTResult = "Exportfft";
@@ -152,23 +150,23 @@ public class MainWindow implements ActionListener {
         menuBar.add(menu2);
         menuBar.add(menu3);
         
-        item11 = new JMenuItem("Import .inf file");
-        item11.setActionCommand(IMPORTINF);
-        item12 = new JMenuItem("Import output file(.out)");
-        item12.setActionCommand(IMPORTDATA);
+        item11 = new JMenuItem("Import PSCAD .inf and .out file");
+        item11.setActionCommand(IMPORTPSCAD);
+        //item12 = new JMenuItem("Update PSCAD .out file");
+        //item12.setActionCommand(UPDATEPSCADDATA);
         item13 = new JMenuItem("Exit");
         item13.setActionCommand(EXIT);
-        item21 = new JMenuItem("Export signal inspector chart");
+        item21 = new JMenuItem("Export Signal Chart");
         item21.setActionCommand(ExportSignalInspector);
-        item22 = new JMenuItem("Export FFT result chart");
+        item22 = new JMenuItem("Export FFT Result Chart");
         item22.setActionCommand(ExportFFTResult);
-        item23 = new JMenuItem("Export power calculation chart");
+        item23 = new JMenuItem("Export Power Calculation Chart");
         item23.setActionCommand(ExportPowerResult);
         item31 = new JMenuItem("About");
         item31.setActionCommand(ABOUT);
         
         menu1.add(item11);
-        menu1.add(item12);
+        //menu1.add(item12);
         menu1.addSeparator();
         menu1.add(item13);
         menu2.add(item21);
@@ -177,7 +175,7 @@ public class MainWindow implements ActionListener {
         menu3.add(item31);
         
         item11.addActionListener(this);
-        item12.addActionListener(this);
+        //item12.addActionListener(this);
         item13.addActionListener(this);
         item21.addActionListener(this);
         item22.addActionListener(this);
@@ -251,20 +249,23 @@ public class MainWindow implements ActionListener {
         pcp.addButtonListener(this);
     }
     
+    String fileLoc;
     /**
      * Import inf file, used in menu1 item1 action listener. 
      */
-    private void importINF(){
+    private void importPSCADINF(){
         new Thread(){
             public void run(){
                 FileNameExtensionFilter filter = new FileNameExtensionFilter("PSCAD project info file(*.inf)","inf");
-                JFileChooser jChooser = new JFileChooser();
+                JFileChooser jChooser = (fileLoc == null)?new JFileChooser():new JFileChooser(fileLoc);
                 jChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                jChooser.setDialogTitle("Open project information file...");
                 jChooser.setFileFilter(filter);
                 int returnval = jChooser.showOpenDialog(null);
                 if (returnval == JFileChooser.APPROVE_OPTION) {
                     dataNew = new DataSection();
                     String path = jChooser.getSelectedFile().getPath();
+                    fileLoc = jChooser.getSelectedFile().getParentFile().getPath();
                     input = new InfoReader(path, dataNew);
                     try {
                         input.readFile();
@@ -272,20 +273,22 @@ public class MainWindow implements ActionListener {
                         JOptionPane.showMessageDialog(null, err, "Error", JOptionPane.ERROR_MESSAGE);
                     }
                     input = null;
+                    importPSCADData();
                 }
             }
         }.start();
     }
     
-    private void importData(){
+    private void importPSCADData(){
         if(dataNew == null){
             JOptionPane.showMessageDialog(null, "An inf file should be loaded first.", 
                     "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         FileNameExtensionFilter filter = new FileNameExtensionFilter("PSCAD output file(*.out)","out");
-        JFileChooser jChooser = new JFileChooser();
+        JFileChooser jChooser = new JFileChooser(fileLoc);
         jChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        jChooser.setDialogTitle("Open data output file...");
         jChooser.setFileFilter(filter);
         int returnval = jChooser.showOpenDialog(null);
         if (returnval == JFileChooser.APPROVE_OPTION) {
@@ -372,10 +375,10 @@ public class MainWindow implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         String s = e.getActionCommand();
         try{
-            if(s.equals(IMPORTINF)){
-                importINF();
-            } else if (s.equals(IMPORTDATA)){
-                importData();
+            if(s.equals(IMPORTPSCAD)){
+                importPSCADINF();
+            } else if (s.equals(UPDATEPSCADDATA)){
+                importPSCADData();
             } else if (s.equals(EXIT)){
                 System.exit(0);
             } else if (s.equals(POWERCALCULATE)){
@@ -386,13 +389,13 @@ public class MainWindow implements ActionListener {
                 fftDisplay();
             } else if (s.equals(ExportSignalInspector)){
                 MyExportDialog export = new MyExportDialog();
-                export.showExportDialog(mainFrame, "Export view as ...", tsp1.getPrintComponent(), "export" );
+                export.showExportDialog(mainFrame, "Export Signal Chart as ...", tsp1.getPrintComponent(), "export" );
             } else if (s.equals(ExportFFTResult)) {
                 MyExportDialog export = new MyExportDialog();
-                export.showExportDialog(mainFrame, "Export view as ...", fftPanel.getPrintComponent(), "export" );
+                export.showExportDialog(mainFrame, "Export FFT Result Chart as ...", fftPanel.getPrintComponent(), "export" );
             } else if (s.equals(ExportPowerResult)) {
                 MyExportDialog export = new MyExportDialog();
-                export.showExportDialog(mainFrame, "Export view as ...", tsp2.getPrintComponent(), "export" );
+                export.showExportDialog(mainFrame, "Export Power Calculation Chart as ...", tsp2.getPrintComponent(), "export" );
             } else if (s.equals(ABOUT)){
                 AboutDialog ad = new AboutDialog(mainFrame);
                 ad.setVisible(true);

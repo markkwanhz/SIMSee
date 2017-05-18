@@ -52,14 +52,16 @@ public class AboutDialog extends JDialog implements MouseListener, MouseMotionLi
         String t = "PSCAD See\n" + "Author: Markghz\n" + "GitHub: ";
         String textLink = "https://github.com/Markghz/PSCADvisualization";
         Font font = new Font("Consolas", Font.PLAIN, DpiSetting.getNormalFontSize());
-        MutableAttributeSet attrs = textPane.getInputAttributes();
+        Style attrs = doc.addStyle("regularPlain", StyleContext.getDefaultStyleContext().getStyle(StyleContext.DEFAULT_STYLE));
         StyleConstants.setFontFamily(attrs, font.getFamily());
         StyleConstants.setFontSize(attrs, font.getSize());
         StyleConstants.setItalic(attrs, (font.getStyle() & Font.ITALIC) != 0);
         StyleConstants.setBold(attrs, (font.getStyle() & Font.BOLD) != 0);
         
         Style regularBlue = doc.addStyle("regularBlue", StyleContext.getDefaultStyleContext().getStyle(StyleContext.DEFAULT_STYLE));
+        font = new Font("Consolas", Font.PLAIN, DpiSetting.getNormalFontSize());
         StyleConstants.setFontFamily(regularBlue, font.getFamily());
+        StyleConstants.setItalic(regularBlue, true);
         StyleConstants.setFontSize(regularBlue, font.getSize());
         StyleConstants.setForeground(regularBlue, Color.BLUE);
         StyleConstants.setUnderline(regularBlue, true);
@@ -68,6 +70,7 @@ public class AboutDialog extends JDialog implements MouseListener, MouseMotionLi
         try {
             doc.insertString(0, t, attrs);
             doc.insertString(doc.getLength(), textLink, regularBlue);
+            doc.insertString(doc.getLength(), "\nThis software is licensed under the GNU General Public License v3.0", attrs);
         } catch (BadLocationException e) {
             e.printStackTrace();
         }
