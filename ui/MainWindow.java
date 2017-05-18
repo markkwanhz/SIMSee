@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -22,11 +23,14 @@ import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import org.freehep.util.export.ExportDialog;
+
 import layout.TableLayout;
 import ui.chart.FFTResultsPanel;
 import ui.chart.FFTSrcPanel;
 import ui.chart.TimeSeriesPanel;
 import ui.util.DpiSetting;
+import ui.util.MyExportDialog;
 import util.data.FFTData;
 import util.data.TimeSeriesData;
 import util.database.DataSection;
@@ -51,6 +55,9 @@ public class MainWindow implements ActionListener {
     public static String IMPORTINF = "Import Inf";
     public static String IMPORTDATA = "Import Data";
     public static String EXIT = "Exit";
+    public static String ExportSignalInspector = "Exportsi";
+    public static String ExportFFTResult = "Exportfft";
+    public static String ExportPowerResult = "Exportpower";
     public static String ABOUT = "About";
     
     //Top frame
@@ -103,17 +110,25 @@ public class MainWindow implements ActionListener {
         
         mainFrame.setJMenuBar(menuBar);
         
-        mainFrame.setSize(DpiSetting.getFittedDimension(new Dimension(1000, 650)));
+        Toolkit kit = Toolkit.getDefaultToolkit();
+        Dimension screenSize = kit.getScreenSize();
+        Dimension frameSize = DpiSetting.getFittedDimension(new Dimension(1000, 650));
+        mainFrame.setLocation((screenSize.width-frameSize.width)/2, (screenSize.height-frameSize.height)/2);
+        mainFrame.setSize(frameSize);
         //mainFrame.setUndecorated(true);
         mainFrame.setVisible(true);
     }
     
     //Menu Bar
     private JMenu menu1;
+    private JMenu menu2;
     private JMenu menu3;
     private JMenuItem item11;
     private JMenuItem item12;
     private JMenuItem item13;
+    private JMenuItem item21;
+    private JMenuItem item22;
+    private JMenuItem item23;
     private JMenuItem item31;
     
     /**
@@ -125,11 +140,16 @@ public class MainWindow implements ActionListener {
         Font menuFont = new Font("Times New Roman", Font.PLAIN,
                 DpiSetting.getMenuSize());
         menu1 = new JMenu(" File ");
+        menu1.setMnemonic('F');
+        menu2 = new JMenu(" Tools ");
+        menu2.setMnemonic('T');
         menu3 = new JMenu(" More ");
+        menu3.setMnemonic('M');
         menu1.setFont(menuFont);
         menu3.setFont(menuFont);
         
         menuBar.add(menu1);
+        menuBar.add(menu2);
         menuBar.add(menu3);
         
         item11 = new JMenuItem("Import .inf file");
@@ -138,6 +158,12 @@ public class MainWindow implements ActionListener {
         item12.setActionCommand(IMPORTDATA);
         item13 = new JMenuItem("Exit");
         item13.setActionCommand(EXIT);
+        item21 = new JMenuItem("Export signal inspector chart");
+        item21.setActionCommand(ExportSignalInspector);
+        item22 = new JMenuItem("Export FFT result chart");
+        item22.setActionCommand(ExportFFTResult);
+        item23 = new JMenuItem("Export power calculation chart");
+        item23.setActionCommand(ExportPowerResult);
         item31 = new JMenuItem("About");
         item31.setActionCommand(ABOUT);
         
@@ -145,12 +171,17 @@ public class MainWindow implements ActionListener {
         menu1.add(item12);
         menu1.addSeparator();
         menu1.add(item13);
-        
+        menu2.add(item21);
+        menu2.add(item22);
+        menu2.add(item23);
         menu3.add(item31);
         
         item11.addActionListener(this);
         item12.addActionListener(this);
         item13.addActionListener(this);
+        item21.addActionListener(this);
+        item22.addActionListener(this);
+        item23.addActionListener(this);
         item31.addActionListener(this);
     }
     
@@ -317,6 +348,7 @@ public class MainWindow implements ActionListener {
         {
             //BeautyEyeLNFHelper.frameBorderStyle = BeautyEyeLNFHelper.FrameBorderStyle.translucencyAppleLike;
             //org.jb2011.lnf.beautyeye.BeautyEyeLNFHelper.launchBeautyEyeLNF();
+            UIManager.getDefaults().put("Button.showMnemonics", Boolean.TRUE);
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             DpiSetting.updateDPI();
         }
@@ -352,6 +384,15 @@ public class MainWindow implements ActionListener {
                 refreshFFTSrc();
             } else if (s.equals(DISPLAY)){
                 fftDisplay();
+            } else if (s.equals(ExportSignalInspector)){
+                MyExportDialog export = new MyExportDialog();
+                export.showExportDialog(mainFrame, "Export view as ...", tsp1.getPrintComponent(), "export" );
+            } else if (s.equals(ExportFFTResult)) {
+                MyExportDialog export = new MyExportDialog();
+                export.showExportDialog(mainFrame, "Export view as ...", fftPanel.getPrintComponent(), "export" );
+            } else if (s.equals(ExportPowerResult)) {
+                MyExportDialog export = new MyExportDialog();
+                export.showExportDialog(mainFrame, "Export view as ...", tsp2.getPrintComponent(), "export" );
             } else if (s.equals(ABOUT)){
                 AboutDialog ad = new AboutDialog(mainFrame);
                 ad.setVisible(true);

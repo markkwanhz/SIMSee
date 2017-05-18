@@ -1,11 +1,11 @@
 package ui.chart;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeListener;
+
+import layout.TableLayout;
+import ui.util.DpiSetting;
 
 
 
@@ -27,26 +27,17 @@ public class SliderPanel extends JPanel{
         this.slider.setPaintTicks(false);
         this.slider.setPaintTrack(true);
         
-        GridBagLayout layout = new GridBagLayout();
-        GridBagConstraints s = new GridBagConstraints();
-        s.gridx = 0; s.gridy = 0; s.gridwidth = 1; s.gridheight = 1; 
-        s.weightx = 0; s.weighty = 0; 
-        switch(orientation){
-        case JSlider.VERTICAL:
-            s.fill = GridBagConstraints.VERTICAL; s.anchor = GridBagConstraints.EAST;
-            break;
-        case JSlider.HORIZONTAL:
-            s.fill = GridBagConstraints.HORIZONTAL; s.anchor = GridBagConstraints.SOUTH;
-            break;
+        if(orientation == JSlider.HORIZONTAL){
+            double[][] size = {{DpiSetting.convertDouble(60),TableLayout.FILL},{TableLayout.FILL}};
+            TableLayout layout = new TableLayout(size);
+            this.setLayout(layout);
+            this.add(slider,"1,0,f,f");
+        } else {
+            double[][] size = {{TableLayout.FILL},{TableLayout.FILL,DpiSetting.convertDouble(40)}};
+            TableLayout layout = new TableLayout(size);
+            this.setLayout(layout);
+            this.add(slider,"0,0,f,f");
         }
-        this.setLayout(layout);
-        this.add(slider);
-        layout.setConstraints(slider, s);
-//        if(orientation == JSlider.VERTICAL){
-//            this.add(slider,"West");
-//        }else{
-//            this.add(slider,"South");
-//        }
         this.setOpaque(false);
         this.slider.setOpaque(false);
     }
