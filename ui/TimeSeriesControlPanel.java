@@ -154,7 +154,7 @@ public class TimeSeriesControlPanel extends JPanel implements ItemListener,
         data = d;
 
         filter.removeAllItems();
-        filter.addItem("");
+        filter.addItem("All");
         String[][] listTmp = data.listTypes();
         for (int k = 0; k < listTmp[0].length; k++) {
             if (listTmp[0][k].equals(""))
@@ -169,10 +169,11 @@ public class TimeSeriesControlPanel extends JPanel implements ItemListener,
 
         allList.clear();
         listContent.clear();
-        listContent.put("", new Vector<JCheckBox>());
+        Vector<JCheckBox> allTmp = new Vector<JCheckBox>();
+        listContent.put("All", allTmp);
         for (int k = 0; k < filter.getItemCount(); k++) {
             String filterName = filter.getItemAt(k);
-            if (filterName.equals(""))
+            if (filterName.equals("All"))
                 continue;
             String[] filterSplitted = filterName.split(":");
             Vector<JCheckBox> tmpList = new Vector<JCheckBox>();
@@ -184,6 +185,7 @@ public class TimeSeriesControlPanel extends JPanel implements ItemListener,
                     tmpBox = new JCheckBox(nameList[j]);
                     tmpBox.addItemListener(this);
                     allList.put(nameList[j], tmpBox);
+                    allTmp.add(tmpBox);
                     tmpList.addElement(tmpBox);
                 } else {
                     tmpList.addElement(allList.get(nameList[j]));
@@ -191,7 +193,7 @@ public class TimeSeriesControlPanel extends JPanel implements ItemListener,
             }
             listContent.put(filterName, tmpList);
         }
-        
+        signalList.setListData(allTmp);
         crosshairListContent.removeAllElements();
         crosshairListContent.addElement("(None)");
     }

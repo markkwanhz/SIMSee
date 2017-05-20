@@ -261,7 +261,7 @@ public class MainWindow implements ActionListener {
                 jChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 jChooser.setDialogTitle("Open project information file...");
                 jChooser.setFileFilter(filter);
-                int returnval = jChooser.showOpenDialog(null);
+                int returnval = jChooser.showOpenDialog(mainFrame);
                 if (returnval == JFileChooser.APPROVE_OPTION) {
                     dataNew = new DataSection();
                     String path = jChooser.getSelectedFile().getPath();
@@ -290,7 +290,7 @@ public class MainWindow implements ActionListener {
         jChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         jChooser.setDialogTitle("Open data output file...");
         jChooser.setFileFilter(filter);
-        int returnval = jChooser.showOpenDialog(null);
+        int returnval = jChooser.showOpenDialog(mainFrame);
         if (returnval == JFileChooser.APPROVE_OPTION) {
             Progress p = new Progress(mainFrame, Progress.IMPORT);
             new Thread() {
