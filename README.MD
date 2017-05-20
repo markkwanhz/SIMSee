@@ -6,6 +6,8 @@ The program is designed to read and show data from PSCAD's simulation result fil
 - FFT Analysis
 - Power Calculator
 
+You can also export the charts as many types of files. Supported files include png, ps, eps, pdf, etc. Vetor graphics are recommended for higher qualities.
+
 #### How to use
 
 - Run PSCADSee.jar

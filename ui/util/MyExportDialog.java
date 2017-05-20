@@ -12,10 +12,9 @@ import java.util.Properties;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
-import org.freehep.graphics2d.VectorGraphics;
-import org.freehep.graphicsio.exportchooser.AbstractExportFileType;
-import org.freehep.util.export.ExportDialog;
-import org.freehep.util.export.ExportFileType;
+import org.freehep.graphics2d.*;
+import org.freehep.graphicsio.exportchooser.*;
+import org.freehep.util.export.*;
 import org.jfree.chart.ChartPanel;
 
 public class MyExportDialog extends ExportDialog {
