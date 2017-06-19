@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 
 import javax.swing.BorderFactory;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -57,6 +58,9 @@ public class MainWindow implements ActionListener {
     public static String ExportFFTResult = "Exportfft";
     public static String ExportPowerResult = "Exportpower";
     public static String ABOUT = "About";
+    public static String XZOOM = "XZooming";
+    public static String YZOOM = "YZooming";
+    public static String BOTHZOOM = "BothZooming";
     
     //Top frame
     private JFrame mainFrame;
@@ -121,13 +125,17 @@ public class MainWindow implements ActionListener {
     private JMenu menu1;
     private JMenu menu2;
     private JMenu menu3;
+    private JMenu menu4;
     private JMenuItem item11;
-    private JMenuItem item12;
+    //private JMenuItem item12;
     private JMenuItem item13;
     private JMenuItem item21;
     private JMenuItem item22;
     private JMenuItem item23;
     private JMenuItem item31;
+    private JCheckBoxMenuItem item41;
+    private JCheckBoxMenuItem item42;
+    private JCheckBoxMenuItem item43;
     
     /**
      * Generate the menu bar
@@ -143,11 +151,16 @@ public class MainWindow implements ActionListener {
         menu2.setMnemonic('T');
         menu3 = new JMenu(" More ");
         menu3.setMnemonic('M');
+        menu4 = new JMenu("Zoom");
+        menu4.setMnemonic('Z');
         menu1.setFont(menuFont);
+        menu2.setFont(menuFont);
         menu3.setFont(menuFont);
+        menu4.setFont(menuFont);
         
         menuBar.add(menu1);
         menuBar.add(menu2);
+        menuBar.add(menu4);
         menuBar.add(menu3);
         
         item11 = new JMenuItem("Import PSCAD .inf and .out file");
@@ -164,6 +177,12 @@ public class MainWindow implements ActionListener {
         item23.setActionCommand(ExportPowerResult);
         item31 = new JMenuItem("About");
         item31.setActionCommand(ABOUT);
+        item41 = new JCheckBoxMenuItem("X Axis", false);
+        item41.setActionCommand(XZOOM);
+        item42 = new JCheckBoxMenuItem("Y Axis", false);
+        item42.setActionCommand(YZOOM);
+        item43 = new JCheckBoxMenuItem("Both Axes", true);
+        item43.setActionCommand(BOTHZOOM);
         
         menu1.add(item11);
         //menu1.add(item12);
@@ -173,6 +192,9 @@ public class MainWindow implements ActionListener {
         menu2.add(item22);
         menu2.add(item23);
         menu3.add(item31);
+        menu4.add(item41);
+        menu4.add(item42);
+        menu4.add(item43);
         
         item11.addActionListener(this);
         //item12.addActionListener(this);
@@ -181,6 +203,9 @@ public class MainWindow implements ActionListener {
         item22.addActionListener(this);
         item23.addActionListener(this);
         item31.addActionListener(this);
+        item41.addActionListener(this);
+        item42.addActionListener(this);
+        item43.addActionListener(this);
     }
     
     /**
@@ -247,6 +272,14 @@ public class MainWindow implements ActionListener {
         tab3.setBackground(Color.WHITE);
         topTab.add(" Power calculation ", tab3);
         pcp.addButtonListener(this);
+    }
+    
+    private static String zoomState = BOTHZOOM;
+    public static String getZoomState(){
+        return zoomState;
+    }
+    public static void setZoomState(String state){
+        zoomState = state;
     }
     
     String fileLoc;
@@ -399,6 +432,18 @@ public class MainWindow implements ActionListener {
             } else if (s.equals(ABOUT)){
                 AboutDialog ad = new AboutDialog(mainFrame);
                 ad.setVisible(true);
+            } else if (s.equals(XZOOM)){
+                setZoomState(XZOOM);
+                item42.setSelected(false);
+                item43.setSelected(false);
+            } else if (s.equals(YZOOM)){
+                setZoomState(YZOOM);
+                item41.setSelected(false);
+                item43.setSelected(false);
+            } else if (s.equals(BOTHZOOM)){
+                setZoomState(BOTHZOOM);
+                item41.setSelected(false);
+                item42.setSelected(false);
             }
         } catch (InvalidInputException e1) {
             JOptionPane.showMessageDialog(mainFrame, "Your input is invalid. Please check!", 

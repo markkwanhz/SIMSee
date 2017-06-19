@@ -12,42 +12,55 @@ public class DataSection {
     private PropertyBase property;
     private ArrayList<String> signalName;
     private SignalData time;
+    
+    public static String[] PSCADField = {"Signal Type", "Signal Name", "Signal Group", "Max", "Min", "Units"};
+    public static String[] BlankField = {};
 
     public DataSection() {
         data = new DataBase();
         property = new PropertyBase();
         signalName = new ArrayList<String>();
-        time = new SignalData(null);
+        time = new SignalData(BlankField,BlankField);
     }
 
-    public void registerInfo(String[] s) {
-        this.property.registerInfo(s);
-        this.data.registerSignalCol(s);
-        this.signalName.add(s[1]);
+    /**
+     * New a signal in the database
+     * @param name signal's name
+     * @param field the property-name list of the signal
+     * @param value the property-value list of the signal
+     * @param tags the tag-list of the signal
+     * @param prop the prop-list (ordered by the <b>tags</b>) of the signal
+     */
+    public void registerInfo(String name, String[] field, String[] value, 
+            String[] tags, String[] prop) {
+        if(data.get(name)==null){
+            for(int k = 0; k<tags.length; k++){
+                this.property.registerInfo(tags[k], prop[k], name);
+            }
+            this.data.registerSignalCol(name, field, value);
+            this.signalName.add(name);
+        }
     }
 
     /**
      * List all available signal types in the data section
      * @return 
      */
-    public String[][] listTypes() {
-        String[][] ans = new String[2][];
-        ans[0] = this.property.listTypes(0).split(" ");
-        ans[1] = this.property.listTypes(1).split(" ");
+    public String[] listTypes() {
+        String[] ans = this.property.listTypes();
         return ans;
     }
 
     /**
      * List all available signals that fit the given 
      * key and type in the data section
-     * @param key "group" or "type"
+     * @param tag "group" or "type", etc
      * @param type available categories in "group" or "type" 
      * according to <b>key</b>
      * @return
      */
-    public String[] listNames(String key, String type) {
-        int index = key.equals("type")? 0 : 1;
-        return this.property.listNames(index, type).split(" ");
+    public String[] listNames(String tag, String type) {
+        return this.property.listNames(tag, type).split(" ");
     }
     
     /**
@@ -58,13 +71,26 @@ public class DataSection {
         return signalName.toArray();
     }
 
-
+    /**
+     * register data into the database with signal index
+     * @param signalIndex
+     * @param signal the value(double)
+     */
     public void registerData(int signalIndex, double signal) {
         if (signalIndex == 0) {
             this.time.add(signal);
         } else {
             this.data.registerData(signalName.get(signalIndex - 1), signal);
         }
+    }
+    
+    /**
+     * register data into the database with signal name
+     * @param signalName
+     * @param signal the value(double)
+     */
+    public void registerData(String signalName, double signal){
+        
     }
 
     /**
@@ -129,6 +155,10 @@ public class DataSection {
             throw new ArrayOverflowException();
         return this.data.queryRecord(time, signalName);
     }
+    
+    public String querySignalInfo(String signalName){
+        return this.data.querySignalInfo(signalName);
+    }
 
     public void postProgress() {
         this.data.postProgress();
@@ -160,7 +190,7 @@ public class DataSection {
         data.clear();
         property.clear();
         signalName.clear();
-        time = new SignalData(null);
+        time = new SignalData(BlankField, BlankField);
     }
    
 }

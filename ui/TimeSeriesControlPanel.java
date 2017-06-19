@@ -11,6 +11,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -23,6 +24,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
+import javax.swing.ListModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -38,7 +40,7 @@ import util.database.DataSection;
  *
  */
 public class TimeSeriesControlPanel extends JPanel implements ItemListener,
-        ListSelectionListener, MouseListener {
+        ListSelectionListener, MouseListener, MouseMotionListener {
     private static final long serialVersionUID = 1L;
 
     //Signal chooser
@@ -102,6 +104,7 @@ public class TimeSeriesControlPanel extends JPanel implements ItemListener,
 
         signalList = new JList<JCheckBox>();
         signalList.setCellRenderer(new CheckBoxItem());
+        signalList.addMouseMotionListener(this);
         signalChooser = new JScrollPane(signalList);
 
         crosshairListContent = new DefaultListModel<String>();
@@ -155,16 +158,11 @@ public class TimeSeriesControlPanel extends JPanel implements ItemListener,
 
         filter.removeAllItems();
         filter.addItem("All");
-        String[][] listTmp = data.listTypes();
-        for (int k = 0; k < listTmp[0].length; k++) {
-            if (listTmp[0][k].equals(""))
-                continue;
-            filter.addItem("type:" + listTmp[0][k]);
-        }
-        for (int k = 0; k < listTmp[1].length; k++) {
-            if (listTmp[1][k].equals(""))
-                continue;
-            filter.addItem("group:" + listTmp[1][k]);
+        String[] listTmp = data.listTypes();
+        for (int k = 0; k < listTmp.length; k++) {
+//            if (listTmp[k].equals(""))
+//                continue;
+            filter.addItem(listTmp[k]);
         }
 
         allList.clear();
@@ -173,25 +171,33 @@ public class TimeSeriesControlPanel extends JPanel implements ItemListener,
         listContent.put("All", allTmp);
         for (int k = 0; k < filter.getItemCount(); k++) {
             String filterName = filter.getItemAt(k);
-            if (filterName.equals("All"))
-                continue;
-            String[] filterSplitted = filterName.split(":");
-            Vector<JCheckBox> tmpList = new Vector<JCheckBox>();
             JCheckBox tmpBox;
-            String[] nameList = data.listNames(filterSplitted[0],
-                    filterSplitted[1]);
-            for (int j = 0; j < nameList.length; j++) {
-                if (allList.get(nameList[j]) == null) {
-                    tmpBox = new JCheckBox(nameList[j]);
+            if (filterName.equals("All")){
+                Object[] names = data.listNames();
+                for(int m = 0; m<names.length; m++){
+                    tmpBox = new JCheckBox((String)names[m]);
                     tmpBox.addItemListener(this);
-                    allList.put(nameList[j], tmpBox);
+                    allList.put((String)names[m],tmpBox);
                     allTmp.add(tmpBox);
-                    tmpList.addElement(tmpBox);
-                } else {
-                    tmpList.addElement(allList.get(nameList[j]));
                 }
+            } else {
+                String[] filterSplitted = filterName.split(":");
+                Vector<JCheckBox> tmpList = new Vector<JCheckBox>();
+                String[] nameList = data.listNames(filterSplitted[0],
+                        filterSplitted[1]);
+                for (int j = 0; j < nameList.length; j++) {
+//                    if (allList.get(nameList[j]) == null) {
+//                        tmpBox = new JCheckBox(nameList[j]);
+//                        tmpBox.addItemListener(this);
+//                        allList.put(nameList[j], tmpBox);
+//                        allTmp.add(tmpBox);
+//                        tmpList.addElement(tmpBox);
+//                    } else {
+                        tmpList.addElement(allList.get(nameList[j]));
+//                    }
+                }
+                listContent.put(filterName, tmpList);
             }
-            listContent.put(filterName, tmpList);
         }
         signalList.setListData(allTmp);
         crosshairListContent.removeAllElements();
@@ -219,6 +225,7 @@ public class TimeSeriesControlPanel extends JPanel implements ItemListener,
                 sortedInsert(boxChange.getText());
                 crosshairList.setSelectedIndex(crosshairListContent.indexOf(selected));
                 tsPanel.setSignalVisible(boxChange.getText(), true);
+                
             } else {
                 if(crosshairList.getSelectedIndex() == crosshairListContent.indexOf(boxChange.getText())){
                     crosshairList.setSelectedIndex(0);
@@ -229,6 +236,11 @@ public class TimeSeriesControlPanel extends JPanel implements ItemListener,
         }
     }
     
+    /**
+     * Insert the selected signal to the displaying signal list
+     * according to alphabetical order.
+     * @param text the selected signal name
+     */
     protected void sortedInsert(String text) {
         for(int k = 1; k<crosshairListContent.getSize(); k++){
             if(crosshairListContent.getElementAt(k).compareTo(text)>0){
@@ -281,4 +293,22 @@ public class TimeSeriesControlPanel extends JPanel implements ItemListener,
 
     @Override
     public void mouseExited(MouseEvent e) {}
+
+    @Override
+    public void mouseDragged(MouseEvent e) {}
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+        @SuppressWarnings("unchecked")
+        JList<JCheckBox> l = (JList<JCheckBox>)e.getSource();
+        ListModel<JCheckBox> m = l.getModel();
+        int index = l.locationToIndex(e.getPoint());
+        if(index > -1){
+            String toolTip = data.querySignalInfo(m.getElementAt(index).getText());
+            l.setToolTipText(toolTip);
+        }else{
+            l.setToolTipText(null);
+        }
+        
+    }
 }

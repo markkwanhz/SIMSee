@@ -7,8 +7,8 @@ import java.io.StringReader;
 import java.util.Scanner;
 
 /**
- * An example of info file: PGB(1) Output Desc="U:1" Group="Main" Max=2.0
- * Min=-2.0 Units=""
+ * An example of info file:</p>
+ * PGB(1) Output Desc="U:1" Group="Main" Max=2.0 Min=-2.0 Units=""
  */
 public class InfoReader extends FileReader {
     public InfoReader(String f, DataSection d) {
@@ -41,7 +41,7 @@ public class InfoReader extends FileReader {
     }
 
     protected void register(String[] s, DataSection d) {
-        d.registerInfo(s);
+        d.registerInfo(s[1], DataSection.PSCADField, s, new String[]{"type", "group"}, new String[]{s[0], s[2]});
     }
 
     protected void postProgress() {

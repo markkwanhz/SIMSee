@@ -4,6 +4,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -43,13 +45,14 @@ import org.jfree.data.xy.DefaultXYDataset;
 import org.jfree.ui.RectangleAnchor;
 import org.jfree.ui.RectangleEdge;
 
+import ui.MainWindow;
 import ui.util.DpiSetting;
 import util.data.TimeSeriesData;
 
 /**
  * 
  */
-public class TimeSeriesPanel extends JPanel implements MouseListener, MouseMotionListener {
+public class TimeSeriesPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener {
     private static final long serialVersionUID = -3682074995996044430L;
 
     // Chart Components
@@ -90,7 +93,7 @@ public class TimeSeriesPanel extends JPanel implements MouseListener, MouseMotio
                     double gapHi = temp.getUpperBound()
                             - this.limit.getUpperBound();
                     if (gapHi > 0) {
-                        temp = Range.shift(temp, -gapHi);
+                        temp = Range.shift(temp, -gapHi, true);
                     }
                     this.axis.setRange(temp);
                 }
@@ -258,6 +261,7 @@ public class TimeSeriesPanel extends JPanel implements MouseListener, MouseMotio
         
         this.cp.addMouseListener(this);
         this.cp.addMouseMotionListener(this);
+        this.cp.addMouseWheelListener(this);
     }
     
     private HashMap<String, MyRange> domainRange;
@@ -488,4 +492,49 @@ public class TimeSeriesPanel extends JPanel implements MouseListener, MouseMotio
 
     @Override
     public void mouseExited(MouseEvent e) {}
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        if(MainWindow.getZoomState().equals(MainWindow.XZOOM)){
+            zoomAxis(this.xAxis, this.xLimit, this.xSlider, e.getWheelRotation(), "x");
+        } else if (MainWindow.getZoomState().equals(MainWindow.YZOOM)){
+            zoomAxis(this.yAxis, this.yLimit, this.ySlider, e.getWheelRotation(), "y");
+        } else {
+            zoomAxis(this.xAxis, this.xLimit, this.xSlider, e.getWheelRotation(), "x");
+            zoomAxis(this.yAxis, this.yLimit, this.ySlider, e.getWheelRotation(), "y");
+        }
+    }
+    
+    private void zoomAxis(ValueAxis axis, MyRange limit, SliderPanel sd, int dir, String axisName){
+        Range temp = new Range(0,1);
+        Range range = axis.getRange();
+        Point point = MouseInfo.getPointerInfo().getLocation();
+        SwingUtilities.convertPointFromScreen(point, cp);
+        Rectangle2D dataArea = cp.getScreenDataArea();
+        if(dir < 0){
+            temp = Range.expand(range, 0, -0.2);
+            double distance = axisName.equals("x")? (point.getX() - dataArea.getX()) / dataArea.getWidth() * range.getLength() :
+                (-point.getY() + dataArea.getMaxY()) / dataArea.getHeight() * range.getLength();
+            double adjust = 0.2 * distance;
+            temp = Range.shift(temp, adjust, true);
+            axis.setRange(temp);
+            
+        } else if (dir > 0){
+            if (range.getLength() > 0.5 * limit.getLength()) {
+                axis.setRange(limit.getRange());
+            } else {
+                temp = Range.expand(range, 0, 0.25);
+                double distance = axisName.equals("x")? (point.getX() - dataArea.getX()) / dataArea.getWidth() * range.getLength() :
+                    (-point.getY() + dataArea.getMaxY()) / dataArea.getHeight() * range.getLength();
+                double adjust = -0.25 * distance;
+                temp = Range.shift(temp, adjust, true);
+                temp = limit.adjustRange(temp);
+                axis.setRange(temp);
+            }
+        }
+        range = axis.getRange();
+        double gap = limit.getLength() - range.getLength();
+        int loc = (int) ((range.getLowerBound() - limit.getLowerBound()) * 10000 / gap);
+        sd.setSlider(loc);
+    }
 }

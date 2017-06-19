@@ -20,7 +20,7 @@ public class TransparentSlider extends JSlider {
     class MyMouseListener extends MouseAdapter{
         @Override
         public void mouseEntered(MouseEvent arg0) {
-           alpha = 0.6f;
+           alpha = 0.8f;
            repaint();
         }
 

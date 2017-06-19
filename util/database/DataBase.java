@@ -13,11 +13,11 @@ public class DataBase extends HashMap<String, SignalData> {
     public DataBase() {
         super();
         String[] time = { "Time", "Time", "Time", "0", "0", "s" };
-        this.put("Time", new SignalData(time));
+        this.put("Time", new SignalData(DataSection.PSCADField,time));
     }
 
-    public void registerSignalCol(String[] s) {
-        this.put(s[1], new SignalData(s));
+    public void registerSignalCol(String name, String[] field, String[] value) {
+        this.put(name, new SignalData(field, value));
     }
 
     public void registerData(String signalName, double signal) {
@@ -45,6 +45,10 @@ public class DataBase extends HashMap<String, SignalData> {
         double r2 = this.get(signalName).queryRecord(index+1);
         double record = r1 + (time - resolution*(double)index)*(r2-r1);
         return record;
+    }
+    
+    public String querySignalInfo(String signalName){
+        return this.get(signalName).toString();
     }
     
     public double getRes(){

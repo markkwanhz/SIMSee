@@ -10,29 +10,18 @@ public class SortedList extends HashMap<String, ArrayList<String>> {
 	 */
     private static final long serialVersionUID = 1L;
 
-    public void registerSignal(String Type, String Signal) {
-        ArrayList<String> temp = this.get(Type);
+    public void registerSignal(String prop, String Signal) {
+        ArrayList<String> temp = this.get(prop);
         if (temp == null) {
             temp = new ArrayList<String>();
             temp.add(Signal);
-            this.put(Type, temp);
+            this.put(prop, temp);
         } else {
             temp.add(Signal);
         }
     }
 
-    @Override
-    public String toString() {
-        String typeList = "";
-        Iterator<java.util.Map.Entry<String, ArrayList<String>>> it = this
-                .entrySet().iterator();
-        while (it.hasNext()) {
-            typeList = typeList + " " + it.next().getKey() ;
-        }
-        return typeList;
-    }
-
-    public String toString(String type) {
+    public String listNames(String type) {
         String nameList = "";
         ArrayList<String> signal = this.get(type);
         if (signal != null) {
@@ -42,5 +31,15 @@ public class SortedList extends HashMap<String, ArrayList<String>> {
             }
         }
         return nameList;
+    }
+    
+    public void listType(String tag, ArrayList<String> target){
+        Iterator<java.util.Map.Entry<String, ArrayList<String>>> it = this
+                .entrySet().iterator();
+        String prop;
+        while(it.hasNext()){
+            prop = it.next().getKey();
+            target.add(tag + ':' +prop);
+        }
     }
 }

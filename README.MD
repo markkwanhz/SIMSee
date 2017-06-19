@@ -20,3 +20,4 @@ You can also export the charts as many types of files. Supported files include p
 - jtransforms-3.1
 - commons-maths3-3.6.1
 - tablelayout
+- FreeHEP VectorGraphics package
