@@ -26,7 +26,7 @@ public class PowerAnalysis {
         double[] vol = u.getData()[1];
         double[] cur = i.getData()[1];
         int index = 0, ii;
-        double r = time[1] - time[0];
+        double r = u.getRes();
         int sampleCnt = (int) (1/(r*fundamentalF));
         double p;
         TimeSeriesData power = new TimeSeriesData("Power", 1/fundamentalF);
@@ -45,7 +45,7 @@ public class PowerAnalysis {
     
     public void setSignal(TimeSeriesData ud, TimeSeriesData id) 
             throws ArrayLengthException{
-        if (ud.getData()[0].length != id.getData()[0].length) {
+        if (ud.size() != id.size()) {
             throw new ArrayLengthException();
         } else {
             u = ud;

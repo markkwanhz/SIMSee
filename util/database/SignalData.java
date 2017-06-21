@@ -20,8 +20,11 @@ public class SignalData {
     private HashMap<String, String> properties;
     
     //Critical field
+    private ArrayList<Double> timeBuff;
     private ArrayList<Double> doubleBuff;
+    private double[] time;
     private double[] data;
+    private double resolution;
     
     public SignalData(String[] field, String[] value) {
 //        if(s==null){
@@ -46,17 +49,47 @@ public class SignalData {
             properties.put(field[index], value[index]);
         }
         doubleBuff = new ArrayList<Double>();
+        timeBuff = new ArrayList<Double>();
+    }
+    
+    public double getRes(){
+        return resolution;
     }
 
-    public double[] queryArray(int index, int num) throws NoDataException,
+    /**
+     * show whether a given time index is legal
+     * @param time
+     * @return true(legal) or false(illegal)
+     */
+    public boolean isLegalTime(double time){
+        return (time>=this.time[0])&&(time<=this.time[this.time.length-1]);
+    }
+    
+    public double[][] queryArray(int index, int num) throws NoDataException,
             ArrayOverflowException {
         if (this.size() == 0) {
             throw new NoDataException();
         } else if (index < 0 || index + num > this.size()) {
             throw new ArrayOverflowException();
         }
-        double[] queryAns = new double[num];
-        System.arraycopy(this.data, index, queryAns, 0, num);
+        double[][] queryAns = new double[2][];
+        queryAns[0] = new double[num];
+        queryAns[1] = new double[num];
+        System.arraycopy(this.time, index, queryAns[0], 0, num);
+        System.arraycopy(this.data, index, queryAns[1], 0, num);
+        return queryAns;
+    }
+    
+    public double[][] queryFullArray() throws NoDataException{
+        int size = this.size();
+        if (size == 0){
+            throw new NoDataException();
+        }
+        double[][] queryAns = new double[2][];
+        queryAns[0] = new double[size];
+        queryAns[1] = new double[size];
+        System.arraycopy(this.time, 0, queryAns[0], 0, size);
+        System.arraycopy(this.data, 0, queryAns[1], 0, size);
         return queryAns;
     }
     
@@ -72,10 +105,26 @@ public class SignalData {
         }
         this.doubleBuff.clear();
         this.doubleBuff = null;
+        
+        this.time = new double[len];
+        for (int k = 0; k < len; k++){
+            this.time[k] = this.timeBuff.get(k);
+        }
+        this.timeBuff.clear();
+        this.timeBuff = null;
+        
+        if(len>2){
+            resolution = time[1] - time[0];
+        }
     }
 
     public void add(double record) {
         this.doubleBuff.add(record);
+    }
+    
+    public void registerData(double time, double value){
+        this.doubleBuff.add(value);
+        this.timeBuff.add(time);
     }
 
     public int size() {

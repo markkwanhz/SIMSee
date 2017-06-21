@@ -13,12 +13,14 @@ import javax.swing.BorderFactory;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
@@ -51,8 +53,8 @@ public class MainWindow implements ActionListener {
     public static String POWERCALCULATE = "Power Calculate";
     public static String FFTREFRESH = "FFT Refresh";
     public static String DISPLAY = "Display";
-    public static String IMPORTPSCAD = "Import Inf";
-    public static String UPDATEPSCADDATA = "Import Data";
+    public static String IMPORTPSCAD = "Import PSCAD";
+    public static String IMPORTCLOUDPSS = "Import Cloudpss";
     public static String EXIT = "Exit";
     public static String ExportSignalInspector = "Exportsi";
     public static String ExportFFTResult = "Exportfft";
@@ -127,7 +129,7 @@ public class MainWindow implements ActionListener {
     private JMenu menu3;
     private JMenu menu4;
     private JMenuItem item11;
-    //private JMenuItem item12;
+    private JMenuItem item12;
     private JMenuItem item13;
     private JMenuItem item21;
     private JMenuItem item22;
@@ -165,8 +167,8 @@ public class MainWindow implements ActionListener {
         
         item11 = new JMenuItem("Import PSCAD .inf and .out file");
         item11.setActionCommand(IMPORTPSCAD);
-        //item12 = new JMenuItem("Update PSCAD .out file");
-        //item12.setActionCommand(UPDATEPSCADDATA);
+        item12 = new JMenuItem("Import CloudPSS simulation file");
+        item12.setActionCommand(IMPORTCLOUDPSS);
         item13 = new JMenuItem("Exit");
         item13.setActionCommand(EXIT);
         item21 = new JMenuItem("Export Signal Chart");
@@ -185,7 +187,7 @@ public class MainWindow implements ActionListener {
         item43.setActionCommand(BOTHZOOM);
         
         menu1.add(item11);
-        //menu1.add(item12);
+        menu1.add(item12);
         menu1.addSeparator();
         menu1.add(item13);
         menu2.add(item21);
@@ -197,7 +199,7 @@ public class MainWindow implements ActionListener {
         menu4.add(item43);
         
         item11.addActionListener(this);
-        //item12.addActionListener(this);
+        item12.addActionListener(this);
         item13.addActionListener(this);
         item21.addActionListener(this);
         item22.addActionListener(this);
@@ -259,6 +261,8 @@ public class MainWindow implements ActionListener {
     /**
      * generate tab3, displaying power calculating result
      */
+//    private JPanel tab3;
+//    private JPanel blankTab3;
     private void genTab3(){
         pcp = new PowerControlPanel();
         tsp2 = new TimeSeriesPanel();
@@ -272,6 +276,13 @@ public class MainWindow implements ActionListener {
         tab3.setBackground(Color.WHITE);
         topTab.add(" Power calculation ", tab3);
         pcp.addButtonListener(this);
+        
+//        blankTab3 = new JPanel();
+//        blankTab3.setBackground(Color.gray);
+//        blankTab3.setLayout(new TableLayout(new double[][]{{TableLayout.FILL},{TableLayout.FILL}}));
+//        JLabel txt = new JLabel("Power Calculation is unavailable with CloudPss data file");
+//        txt.setFont(new Font("Times New Roman", Font.BOLD, DpiSetting.convertInt(22)));
+//        blankTab3.add(txt, "0,0,c,c");
     }
     
     private static String zoomState = BOTHZOOM;
@@ -346,7 +357,7 @@ public class MainWindow implements ActionListener {
                         tsp1.resetPanel();
                         tsp1.addData(xy);
                         p.setValue(80);
-                    } catch (NoDataException | ArrayOverflowException e1) {
+                    } catch (NoDataException | ArrayOverflowException | XYLengthException e1) {
                         e1.printStackTrace();
                     }
                     tscp.refresh();
@@ -359,6 +370,29 @@ public class MainWindow implements ActionListener {
             }.start();
             p.setVisible(true);
         }
+    }
+    
+    private void importCloudPSS(){
+        dataNew = new DataSection();
+        CloudPssImportDialog cloudPssImportDialog = new CloudPssImportDialog(mainFrame, dataNew);
+        int returnVal = cloudPssImportDialog.showImportDialog();
+        if(returnVal == CloudPssImportDialog.LOAD_OPTION){
+            TimeSeriesData[] xy;
+            data = dataNew;
+            try {
+                xy = data.getAllData();
+                tsp1.resetPanel();
+                tsp1.addData(xy);
+            } catch (NoDataException | ArrayOverflowException | XYLengthException e1) {
+                e1.printStackTrace();
+            }
+            tscp.refresh();
+            fftsp.refresh();
+            tscp.setDataSection(data);
+            fftcp.updateData(data);
+            pcp.updateData(data);
+        }
+        dataNew = null;
     }
     
     private void calculatePower(String[] s){
@@ -377,6 +411,16 @@ public class MainWindow implements ActionListener {
                 }
             }
         }.start();
+    }
+    
+    public void disablePower(){
+        item23.setEnabled(false);
+        topTab.setEnabledAt(2, false);
+    }
+    
+    public void enablePower(){
+        item23.setEnabled(true);
+        topTab.setEnabledAt(2, true);
     }
 
     public static void main(String[] args) {
@@ -410,8 +454,10 @@ public class MainWindow implements ActionListener {
         try{
             if(s.equals(IMPORTPSCAD)){
                 importPSCADINF();
-            } else if (s.equals(UPDATEPSCADDATA)){
-                importPSCADData();
+                enablePower();
+            } else if (s.equals(IMPORTCLOUDPSS)){
+                importCloudPSS();
+                disablePower();
             } else if (s.equals(EXIT)){
                 System.exit(0);
             } else if (s.equals(POWERCALCULATE)){
