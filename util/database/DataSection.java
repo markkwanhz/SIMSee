@@ -11,16 +11,17 @@ public class DataSection {
     private DataBase data;
     private PropertyBase property;
     private ArrayList<String> signalName;
-    private SignalData time;
+//    private SignalData time;
     
     public static String[] PSCADField = {"Signal Type", "Signal Name", "Signal Group", "Max", "Min", "Units"};
+    public static String[] CLOUDPSSField = {"Signal Name", "Task Id", "Machine Mac", "Type"};
     public static String[] BlankField = {};
 
     public DataSection() {
         data = new DataBase();
         property = new PropertyBase();
         signalName = new ArrayList<String>();
-        time = new SignalData(BlankField,BlankField);
+//        time = new SignalData(BlankField,BlankField);
     }
 
     /**
@@ -76,12 +77,8 @@ public class DataSection {
      * @param signalIndex
      * @param signal the value(double)
      */
-    public void registerData(int signalIndex, double signal) {
-        if (signalIndex == 0) {
-            this.time.add(signal);
-        } else {
-            this.data.registerData(signalName.get(signalIndex - 1), signal);
-        }
+    public void registerData(int signalIndex, double time, double signal) {
+        this.data.registerData(signalName.get(signalIndex), time, signal);
     }
     
     /**
@@ -89,8 +86,8 @@ public class DataSection {
      * @param signalName
      * @param signal the value(double)
      */
-    public void registerData(String signalName, double signal){
-        
+    public void registerData(String signalName, double time, double signal){
+        this.data.registerData(signalName, time, signal);
     }
 
     /**
@@ -104,15 +101,13 @@ public class DataSection {
      */
     public TimeSeriesData queryData(double timeStart, double timeEnd, String signalName)
             throws NoDataException, ArrayOverflowException {
-        if(timeStart<this.time.queryRecord(0)||timeEnd>this.time.queryRecord(this.time.size()-1)){
+        if((!this.data.isLegalTime(signalName, timeStart))||(!this.data.isLegalTime(signalName, timeEnd))){
             throw new ArrayOverflowException();
         }
-        int size = (int) ((timeEnd - timeStart)/this.data.getRes()) + 1;
-        int key = (int) (timeStart/this.data.getRes());
         double[][]ans = new double[2][];
-        double res = this.data.getRes();
-        ans[0] = this.time.queryArray(key, size);
-        ans[1] = this.data.queryData(timeStart, size, signalName);
+        double res = this.data.getRes(signalName);
+        int size = (int) Math.round((timeEnd - timeStart)/res) + 1;
+        ans = this.data.queryData(timeStart, size, signalName);
         try {
             return new TimeSeriesData(ans, signalName,res);
         } catch (XYLengthException e) {
@@ -131,9 +126,8 @@ public class DataSection {
     public TimeSeriesData querySignal(String signalName) 
             throws NoDataException, ArrayOverflowException{
         double[][]ans = new double[2][];
-        ans[0] = this.time.queryArray(0, this.time.size());
-        ans[1] = this.data.queryData(0, this.time.size(), signalName);
-        double res = this.data.getRes();
+        ans = this.data.queryData(0, this.data.get(signalName).size(), signalName);
+        double res = this.data.getRes(signalName);
         try {
             return new TimeSeriesData(ans, signalName,res);
         } catch (XYLengthException e) {
@@ -151,7 +145,7 @@ public class DataSection {
      */
     public double queryRecord(double time, String signalName) 
             throws ArrayOverflowException{
-        if(time<0 || time > this.time.queryRecord(this.time.size()-1))
+        if(!this.data.isLegalTime(signalName, time))
             throw new ArrayOverflowException();
         return this.data.queryRecord(time, signalName);
     }
@@ -162,23 +156,23 @@ public class DataSection {
 
     public void postProgress() {
         this.data.postProgress();
-        this.time.postProgress();
-        double tr = this.time.queryRecord(1) - this.time.queryRecord(0);
-        this.data.setRes(tr);
     }
     /**
      * Get all data from the database.
      * @return A TimeSeriesData array.
      * @throws NoDataException 
      * @throws ArrayOverflowException
+     * @throws XYLengthException 
      */
-    public TimeSeriesData[] getAllData() throws NoDataException, ArrayOverflowException{
+    public TimeSeriesData[] getAllData() throws NoDataException, ArrayOverflowException, XYLengthException{
         int len = this.signalName.size();
-        double start = this.time.queryRecord(0);
-        double end = this.time.queryRecord(this.time.size()-1);
+//        double start = this.time.queryRecord(0);
+//        double end = this.time.queryRecord(this.time.size()-1);
         TimeSeriesData[] data = new TimeSeriesData[len];
+        String signalName;
         for(int k = 0; k<len; k++){
-            data[k] = this.queryData(start, end, this.signalName.get(k));
+            signalName = this.signalName.get(k);
+            data[k] = new TimeSeriesData(this.data.queryFullData(signalName), signalName, this.data.get(signalName).getRes());
         }
         return data;
     }
@@ -190,7 +184,7 @@ public class DataSection {
         data.clear();
         property.clear();
         signalName.clear();
-        time = new SignalData(BlankField, BlankField);
+//        time = new SignalData(BlankField, BlankField);
     }
    
 }

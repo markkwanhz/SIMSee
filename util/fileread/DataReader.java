@@ -19,8 +19,8 @@ public class DataReader extends FileReader {
     }
 
     protected void register(String[] s, DataSection d) {
-        for (int k = 0; k < s.length; k++) {
-            d.registerData(k, Double.parseDouble(s[k]));
+        for (int k = 1; k < s.length; k++) {
+            d.registerData(k-1, Double.parseDouble(s[0]), Double.parseDouble(s[k]));
         }
     }
 

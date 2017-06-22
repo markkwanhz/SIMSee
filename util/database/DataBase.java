@@ -8,20 +8,18 @@ import util.exception.NoDataException;
 
 public class DataBase extends HashMap<String, SignalData> {
     private static final long serialVersionUID = 1L;
-    private double resolution;
+//    private double resolution;
 
     public DataBase() {
         super();
-        String[] time = { "Time", "Time", "Time", "0", "0", "s" };
-        this.put("Time", new SignalData(DataSection.PSCADField,time));
     }
 
     public void registerSignalCol(String name, String[] field, String[] value) {
         this.put(name, new SignalData(field, value));
     }
 
-    public void registerData(String signalName, double signal) {
-        this.get(signalName).add(signal);
+    public void registerData(String signalName, double time, double signal) {
+        this.get(signalName).registerData(time, signal);
     }
 
     public void postProgress() {
@@ -32,18 +30,32 @@ public class DataBase extends HashMap<String, SignalData> {
         }
     }
 
-    public double[] queryData(double timeStart, int num, String signalName)
+    /**
+     * query data from database
+     * @param timeStart
+     * @param num length of the desired part
+     * @param signalName 
+     * @return A two-dimension array, [0] stores time and [1] stores signal
+     * @throws NoDataException
+     * @throws ArrayOverflowException
+     */
+    public double[][] queryData(double timeStart, int num, String signalName)
             throws NoDataException, ArrayOverflowException {
-        int start = (int) (timeStart / resolution);
-        double[] ans = this.get(signalName).queryArray(start, num);
+        int start = (int) Math.round(timeStart / getRes(signalName));
+        double[][] ans = this.get(signalName).queryArray(start, num);
         return ans;
     }
     
+    public double[][] queryFullData(String signalName)
+            throws NoDataException{
+        return this.get(signalName).queryFullArray();
+    }
+    
     public double queryRecord(double time, String signalName){
-        int index = (int) (time/resolution);
+        int index = (int) Math.round(time / getRes(signalName));
         double r1 = this.get(signalName).queryRecord(index);
         double r2 = this.get(signalName).queryRecord(index+1);
-        double record = r1 + (time - resolution*(double)index)*(r2-r1);
+        double record = r1 + (time - getRes(signalName)*(double)index)*(r2-r1);
         return record;
     }
     
@@ -51,17 +63,15 @@ public class DataBase extends HashMap<String, SignalData> {
         return this.get(signalName).toString();
     }
     
-    public double getRes(){
-        return this.resolution;
+    public double getRes(String signalName){
+        return this.get(signalName).getRes();
     }
     
-    public void setRes(double res){
-        this.resolution = res;
+    public boolean isLegalTime(String signalName, double time){
+        return this.get(signalName).isLegalTime(time);
     }
     
-    @Override
-    public void clear(){
-        super.clear();
-        resolution = 0;
-    }
+//    public void setRes(double res){
+//        this.resolution = res;
+//    }
 }

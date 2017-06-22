@@ -70,6 +70,10 @@ public class TimeSeriesData {
         return this.resolution;
     }
     
+    public double size(){
+        return this.xySeries[0].length;
+    }
+    
     public MyRange getDomainRange(){
         return xRange;
     }
