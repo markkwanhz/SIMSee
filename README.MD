@@ -1,6 +1,6 @@
-# PSCAD See
+# Sim See
 
-The program is designed to read and show data from PSCAD's simulation result files:
+The program is designed to read and show data from PSCAD's and CloudPss's simulation result files:
 
 - Show charts of signals
 - FFT Analysis
@@ -21,3 +21,6 @@ You can also export the charts as many types of files. Supported files include p
 - commons-maths3-3.6.1
 - tablelayout
 - FreeHEP VectorGraphics package
+
+#### Note
+- When a CloudPss data file is loaded, power calculator is unavailable. (In future versions we may solve this problem)

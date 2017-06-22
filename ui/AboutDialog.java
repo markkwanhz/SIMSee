@@ -48,7 +48,7 @@ public class AboutDialog extends JDialog implements MouseListener, MouseMotionLi
         textPane.addMouseListener(this);
         textPane.addMouseMotionListener(this);
         doc = textPane.getStyledDocument();
-        String t = "PSCAD See\n" + "Author: Markghz\n" + "GitHub: ";
+        String t = "Sim See\n" + "Author: Markghz\n" + "GitHub: ";
         String textLink = "https://github.com/Markghz/PSCADvisualization";
         Font font = new Font("Consolas", Font.PLAIN, DpiSetting.getNormalFontSize());
         Style attrs = doc.addStyle("regularPlain", StyleContext.getDefaultStyleContext().getStyle(StyleContext.DEFAULT_STYLE));

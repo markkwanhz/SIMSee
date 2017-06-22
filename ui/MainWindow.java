@@ -100,7 +100,7 @@ public class MainWindow implements ActionListener {
         data = new DataSection();
         fftp = new FFTProperties();
         
-        mainFrame = new JFrame("PSCAD See");
+        mainFrame = new JFrame("Sim See");
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         topTab = new JTabbedPane();
         mainFrame.getContentPane().setLayout(new BorderLayout());

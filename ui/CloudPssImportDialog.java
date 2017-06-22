@@ -79,16 +79,16 @@ public class CloudPssImportDialog extends JDialog implements ActionListener, Ite
         TableLayout layout = new TableLayout(size);
         jp.setLayout(layout);
         jp.setBackground(Color.WHITE);
-        jp.add(label1, "1, 1, c, c");
-        jp.add(filePath, "3, 1, f, c");
-        jp.add(fileChoose, "5, 1, c, c");
-        jp.add(label2, "1, 3, c, c");
-        jp.add(taskChooser, "3, 3, f, c");
-        jp.add(fileLoad, "5, 3, f, c");
+        jp.add(label1, "1, 1, c, b");
+        jp.add(filePath, "3, 1, f, b");
+        jp.add(fileChoose, "5, 1, c, b");
+        jp.add(label2, "1, 3, c, t");
+        jp.add(taskChooser, "3, 3, f, t");
+        jp.add(fileLoad, "5, 3, f, t");
 
         setLayout(new BorderLayout());
         setContentPane(jp);
-        setSize(DpiSetting.getFittedDimension(new Dimension(400, 150)));
+        setSize(DpiSetting.getFittedDimension(new Dimension(400, 120)));
         setResizable(false);
         setLocationRelativeTo(father);
         //setVisible(true);
@@ -122,6 +122,8 @@ public class CloudPssImportDialog extends JDialog implements ActionListener, Ite
                 Vector<String> taskIDList;
                 filePath.setText(fileName);
                 try{
+                    fileChoose.setEnabled(false);
+                    fileLoad.setEnabled(false);
                     reader = new JsonReader(path, data);
                     taskIDList = reader.analyseFile();
                     model = new DefaultComboBoxModel<>(taskIDList);
@@ -129,13 +131,24 @@ public class CloudPssImportDialog extends JDialog implements ActionListener, Ite
                     reader.setTaskID(taskIDList.get(0));
                 } catch (IOException e){
                     JOptionPane.showMessageDialog(null, e, "Error", JOptionPane.ERROR_MESSAGE);
+                } finally {
+                    fileChoose.setEnabled(true);
+                    fileLoad.setEnabled(true);
                 }
             }
         } else if(s.equals(LOAD)){
             try {
+                fileChoose.setEnabled(false);
+                fileLoad.setEnabled(false);
                 reader.readFile();
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(null, e, "Error", JOptionPane.ERROR_MESSAGE);
+            } finally {
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
             returnVal = LOAD_OPTION;
             dispose();
